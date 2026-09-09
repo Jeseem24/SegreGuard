@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
+  subscribeToBins,
+  subscribeToWasteEvents,
   subscribeToCollectionTasks,
-  markTaskCollected,
+  markBinCollected,
+  markWardCollected,
   calculateSlaStatus,
   requestPickup,
+  updateBinFill,
   HOSPITAL_WARDS
 } from '../../lib/firestoreOps.js';
 import { CATEGORY_INFO } from '../../classifiers/classifierInterface.js';
@@ -17,56 +21,103 @@ import {
   Sparkles, 
   PlusCircle,
   Building2,
-  X
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle,
+  RotateCcw,
+  Check,
+  QrCode,
+  Layers,
+  ArrowRight
 } from 'lucide-react';
 import './Tasks.css';
 
 export default function TaskList() {
+  const [bins, setBins] = useState([]);
+  const [events, setEvents] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [collecting, setCollecting] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'route'
-  const [selectedPin, setSelectedPin] = useState(null);
+  const [expandedWards, setExpandedWards] = useState({ 'ward-1': true, 'ward-2': true }); // Default first 2 open
+  const [actionSuccess, setActionSuccess] = useState(null); // feedback toast
+  const [selectedMapWard, setSelectedMapWard] = useState(null);
 
   useEffect(() => {
-    const unsub = subscribeToCollectionTasks((data) => {
-      setTasks(data || []);
-      setLoading(false);
-    });
-    return unsub;
+    const unsubBins = subscribeToBins((data) => setBins(data || []));
+    const unsubEvents = subscribeToWasteEvents(null, (data) => setEvents(data || []));
+    const unsubTasks = subscribeToCollectionTasks((data) => setTasks(data || []));
+
+    return () => {
+      unsubBins();
+      unsubEvents();
+      unsubTasks();
+    };
   }, []);
 
-  const handleCollect = async (taskId) => {
-    setCollecting(taskId);
-    try {
-      await markTaskCollected(taskId);
-    } catch (err) {
-      console.error('Failed to mark collected:', err);
-    }
-    setCollecting(null);
+  const toggleWard = (wardId) => {
+    setExpandedWards(prev => ({
+      ...prev,
+      [wardId]: !prev[wardId]
+    }));
   };
 
-  const handleCreateMockPickup = async () => {
+  const handleConfirmBinPickup = async (binId, wardName, categoryLabel) => {
+    try {
+      await markBinCollected(binId);
+      showFeedback(`Reset ${categoryLabel} in ${wardName} to 0% capacity`);
+    } catch (err) {
+      console.error('Failed to collect bin:', err);
+    }
+  };
+
+  const handleConfirmWardPickup = async (wardId, wardName) => {
+    try {
+      await markWardCollected(wardId);
+      showFeedback(`Collected all 4 bins for ${wardName}`);
+    } catch (err) {
+      console.error('Failed to collect ward:', err);
+    }
+  };
+
+  const showFeedback = (msg) => {
+    setActionSuccess(msg);
+    setTimeout(() => {
+      setActionSuccess(null);
+    }, 3200);
+  };
+
+  const handleSimulateWardAlert = async () => {
     const wardKeys = Object.keys(HOSPITAL_WARDS);
     const randomWard = wardKeys[Math.floor(Math.random() * wardKeys.length)];
     const categories = ['yellow', 'red', 'white', 'blue'];
     const randomCat = categories[Math.floor(Math.random() * categories.length)];
-    await requestPickup(randomCat, randomWard, 'Immediate Ward Collection Request (Capacity > 80%)');
+    
+    // Increment fill by 40% to push toward/over capacity
+    await updateBinFill(randomCat, randomWard, 40);
+    showFeedback(`Simulated bio-waste fill surge in ${HOSPITAL_WARDS[randomWard].name}`);
   };
 
-  if (loading) {
-    return (
-      <div className="tasks">
-        <div className="tasks__loading">
-          <div className="tasks__spinner" />
-          <p className="tasks__loading-text">Connecting real-time logistics dispatch…</p>
-        </div>
-      </div>
-    );
-  }
+  // Group bins and waste events by ward
+  const wardEntries = Object.entries(HOSPITAL_WARDS);
+
+  // Quick statistics calculation
+  const totalBins = bins.length;
+  const criticalBins = bins.filter(b => (b.fillPercent || 0) >= 80);
+  const urgentSlaBins = bins.filter(b => {
+    const sla = calculateSlaStatus(b.slaDeadline);
+    return sla.status === 'CRITICAL' || sla.status === 'BREACH';
+  });
 
   return (
     <div className="tasks">
+      {/* Toast Notification */}
+      {actionSuccess && (
+        <div className="tasks__toast">
+          <CheckCircle2 size={16} className="text-emerald" />
+          <span>{actionSuccess}</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="tasks__header">
         <div>
@@ -74,11 +125,31 @@ export default function TaskList() {
             <Truck className="tasks__header-icon" size={20} />
             <h2 className="tasks__title">Logistics & SLA Dispatch</h2>
           </div>
-          <p className="tasks__subtitle">Demand-driven transit routing & 48h statutory compliance</p>
+          <p className="tasks__subtitle">Ward-wise bio-medical custody, fill monitoring & 48h CPCB SLA</p>
         </div>
         <div className="tasks__live-badge">
           <span className="tasks__live-dot" />
           <span>REALTIME</span>
+        </div>
+      </div>
+
+      {/* KPI Overview Pills */}
+      <div className="tasks__kpi-grid">
+        <div className="tasks__kpi-card">
+          <span className="tasks__kpi-label">Active Wards</span>
+          <span className="tasks__kpi-val">{wardEntries.length} Units</span>
+        </div>
+        <div className="tasks__kpi-card">
+          <span className="tasks__kpi-label">High-Fill Bins (≥80%)</span>
+          <span className={`tasks__kpi-val ${criticalBins.length > 0 ? 'text-amber' : 'text-emerald'}`}>
+            {criticalBins.length} Bins
+          </span>
+        </div>
+        <div className="tasks__kpi-card">
+          <span className="tasks__kpi-label">CPCB 48h SLA Alerts</span>
+          <span className={`tasks__kpi-val ${urgentSlaBins.length > 0 ? 'text-rose' : 'text-emerald'}`}>
+            {urgentSlaBins.length} Urgent
+          </span>
         </div>
       </div>
 
@@ -89,8 +160,8 @@ export default function TaskList() {
           className={`tasks__toggle-btn ${viewMode === 'list' ? 'tasks__toggle-btn--active' : ''}`}
           onClick={() => setViewMode('list')}
         >
-          <Boxes size={15} />
-          <span>Active Queue ({tasks.length})</span>
+          <Building2 size={15} />
+          <span>Ward-Wise Dispatch ({wardEntries.length})</span>
         </button>
         <button
           type="button"
@@ -102,129 +173,232 @@ export default function TaskList() {
         </button>
       </div>
 
-      {/* VIEW 1: Task List */}
+      {/* VIEW 1: Ward-Wise Station List */}
       {viewMode === 'list' && (
-        <>
-          {tasks.length === 0 ? (
-            <div className="tasks__empty-card">
-              <div className="tasks__empty-icon-wrap">
-                <CheckCircle2 size={36} className="text-emerald" />
-              </div>
-              <h3 className="tasks__empty-title">All Hospital Wards Clear</h3>
-              <p className="tasks__empty-desc">
-                No active bio-medical waste bags are awaiting transit or breaching the 48-hour statutory threshold.
-              </p>
-              <button 
-                type="button"
-                className="tasks__mock-btn"
-                onClick={handleCreateMockPickup}
+        <div className="ward-list">
+          <div className="tasks__toolbar">
+            <span className="tasks__toolbar-info">
+              Showing 4 hospital containment zones. Expand any ward to inspect 4-color bin fill levels.
+            </span>
+            <button 
+              type="button"
+              className="tasks__quick-sim-btn"
+              onClick={handleSimulateWardAlert}
+            >
+              <PlusCircle size={14} />
+              <span>Simulate Ward Surge</span>
+            </button>
+          </div>
+
+          {wardEntries.map(([wardId, ward]) => {
+            const wardBins = bins.filter(b => b.wardId === wardId);
+            const wardEvents = events.filter(e => e.wardId === wardId);
+            const isExpanded = !!expandedWards[wardId];
+
+            // Compute highest fill bin in ward
+            let maxFill = 0;
+            let maxFillCategory = 'yellow';
+            let mostUrgentSla = null;
+
+            wardBins.forEach(b => {
+              if ((b.fillPercent || 0) > maxFill) {
+                maxFill = b.fillPercent || 0;
+                maxFillCategory = b.category;
+              }
+              const sla = calculateSlaStatus(b.slaDeadline);
+              if (!mostUrgentSla || sla.hoursLeft < mostUrgentSla.hoursLeft) {
+                mostUrgentSla = sla;
+              }
+            });
+
+            const maxFillInfo = CATEGORY_INFO[maxFillCategory] || CATEGORY_INFO.unknown;
+            const hasCritical = maxFill >= 80;
+            const hasSlaWarning = mostUrgentSla && (mostUrgentSla.status === 'CRITICAL' || mostUrgentSla.status === 'BREACH');
+
+            return (
+              <div 
+                key={wardId}
+                className={`ward-card ${hasCritical ? 'ward-card--critical' : ''} ${isExpanded ? 'ward-card--expanded' : ''}`}
               >
-                <PlusCircle size={15} />
-                <span>Simulate Emergency Ward Alert</span>
-              </button>
-            </div>
-          ) : (
-            <div className="tasks__list">
-              {tasks.map((task) => {
-                const info = CATEGORY_INFO[task.category] || CATEGORY_INFO.unknown;
-                const ward = HOSPITAL_WARDS[task.wardId] || { name: task.wardId, floor: 'Floor 2' };
-                const sla = calculateSlaStatus(task.slaDeadline);
-
-                const time = task.requestedAt
-                  ? new Date(task.requestedAt).toLocaleTimeString('en-IN', {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })
-                  : 'Just now';
-
-                return (
-                  <div
-                    key={task.id}
-                    className="task-card-outer"
-                    style={{
-                      '--task-color': info.color,
-                      '--task-glow': `${info.color}22`
-                    }}
-                  >
-                    <div className="task-card-inner">
-                      {/* Top Meta */}
-                      <div className="task-card__top">
-                        <div className="task-card__bin-badge" style={{ background: `${info.color}20`, borderColor: `${info.color}50` }}>
-                          <span className="task-card__dot" style={{ background: info.color, boxShadow: `0 0 8px ${info.color}` }} />
-                          <span className="task-card__bin-label" style={{ color: info.color }}>{info.label}</span>
-                        </div>
-                        <span className="task-card__time">Logged {time}</span>
-                      </div>
-
-                      {/* Location details */}
-                      <div className="task-card__location">
-                        <div className="task-card__ward-icon">
-                          <Building2 size={16} />
-                        </div>
-                        <div>
-                          <h4 className="task-card__ward-name">{ward.name}</h4>
-                          <span className="task-card__floor">{ward.floor}</span>
-                        </div>
-                      </div>
-
-                      {/* Statutory 48-Hour SLA Countdown */}
-                      <div className={`task-card__sla task-card__sla--${sla.status.toLowerCase()}`}>
-                        <div className="task-card__sla-left">
-                          <Clock size={13} className="task-card__sla-clock" />
-                          <span className="task-card__sla-label">CPCB 48h Limit:</span>
-                        </div>
-                        <span className="task-card__sla-time">{sla.text}</span>
-                      </div>
-
-                      {task.reason && (
-                        <div className="task-card__trigger-reason">
-                          <span className="task-card__trigger-tag">Reason:</span> {task.reason}
-                        </div>
-                      )}
-
-                      {/* Handover Action */}
-                      <button
-                        type="button"
-                        className="task-card__collect-btn"
-                        onClick={() => handleCollect(task.id)}
-                        disabled={collecting === task.id}
-                      >
-                        {collecting === task.id ? (
-                          <>
-                            <span className="task-card__btn-spinner" />
-                            <span>Verifying Barcode Custody…</span>
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 size={15} />
-                            <span>Confirm Pickup & Reset Bin</span>
-                          </>
-                        )}
-                      </button>
+                {/* Ward Header / Master Summary */}
+                <div className="ward-card__header" onClick={() => toggleWard(wardId)}>
+                  <div className="ward-card__title-col">
+                    <div className="ward-card__location-badge">
+                      <Building2 size={14} />
+                      <span>{ward.floor}</span>
+                    </div>
+                    <h3 className="ward-card__name">{ward.name}</h3>
+                    <div className="ward-card__meta-tags">
+                      <span className="ward-card__meta-pill">
+                        <Layers size={12} />
+                        {wardEvents.length} items logged
+                      </span>
+                      <span className="ward-card__meta-pill">
+                        {ward.bedCount} Beds
+                      </span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </>
+
+                  <div className="ward-card__status-col">
+                    {/* Highest Fill Level indicator */}
+                    <div className="ward-card__fill-indicator">
+                      <div className="ward-card__fill-gauge">
+                        <div 
+                          className="ward-card__fill-bar" 
+                          style={{ 
+                            width: `${maxFill}%`,
+                            background: maxFill >= 80 ? '#ef4444' : maxFill >= 50 ? '#f59e0b' : '#10b981'
+                          }} 
+                        />
+                      </div>
+                      <div className="ward-card__fill-labels">
+                        <span className="ward-card__fill-text">
+                          Peak: <strong>{maxFill}%</strong> ({maxFillInfo.label.split(' ')[0]})
+                        </span>
+                        {hasCritical && <span className="ward-card__crit-tag">OVERFLOW ALERT</span>}
+                      </div>
+                    </div>
+
+                    {/* SLA status */}
+                    {mostUrgentSla && (
+                      <div className={`ward-card__sla-chip ward-card__sla-chip--${mostUrgentSla.status.toLowerCase()}`}>
+                        <Clock size={11} />
+                        <span>CPCB SLA: {mostUrgentSla.hoursLeft}h left</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <button 
+                    type="button" 
+                    className="ward-card__chevron-btn"
+                    aria-label="Toggle ward details"
+                  >
+                    {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                  </button>
+                </div>
+
+                {/* Ward Level One-Click Confirm Pickup */}
+                <div className="ward-card__quick-actions">
+                  <button
+                    type="button"
+                    className="ward-card__collect-all-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleConfirmWardPickup(wardId, ward.name);
+                    }}
+                  >
+                    <CheckCircle2 size={14} />
+                    <span>Confirm Full Ward Pickup (Reset All 4 Bins)</span>
+                  </button>
+                </div>
+
+                {/* Expanded Details: 4-Bin Matrix & Station Diagnostics */}
+                {isExpanded && (
+                  <div className="ward-card__body">
+                    <div className="ward-card__body-header">
+                      <h4 className="ward-card__body-title">Statutory 4-Color Segregation Bins</h4>
+                      <span className="ward-card__body-sub">CPCB 2016 Rule 4 Standard</span>
+                    </div>
+
+                    <div className="ward-bins-grid">
+                      {['yellow', 'red', 'white', 'blue'].map((cat) => {
+                        const bin = wardBins.find(b => b.category === cat) || {
+                          id: `bin-${cat}-${wardId}`,
+                          fillPercent: 0,
+                          barcodeId: `BIN-${cat.toUpperCase()}-${wardId.toUpperCase()}`,
+                          slaDeadline: Date.now() + 48 * 3600 * 1000
+                        };
+                        const catInfo = CATEGORY_INFO[cat] || CATEGORY_INFO.unknown;
+                        const binEvents = wardEvents.filter(e => e.category === cat);
+                        const binSla = calculateSlaStatus(bin.slaDeadline);
+                        const fill = bin.fillPercent || 0;
+                        const isOver = fill >= 80;
+
+                        return (
+                          <div 
+                            key={cat}
+                            className={`bin-cell ${isOver ? 'bin-cell--critical' : ''}`}
+                            style={{ '--bin-theme': catInfo.color }}
+                          >
+                            <div className="bin-cell__top">
+                              <div className="bin-cell__badge" style={{ background: `${catInfo.color}20`, borderColor: `${catInfo.color}50` }}>
+                                <span className="bin-cell__dot" style={{ background: catInfo.color }} />
+                                <span className="bin-cell__label" style={{ color: catInfo.color }}>{catInfo.label}</span>
+                              </div>
+                              <span className="bin-cell__barcode">
+                                <QrCode size={11} />
+                                {bin.barcodeId}
+                              </span>
+                            </div>
+
+                            {/* Capacity Meter */}
+                            <div className="bin-cell__meter-section">
+                              <div className="bin-cell__meter-header">
+                                <span className="bin-cell__meter-title">Fill Status</span>
+                                <span className="bin-cell__meter-val" style={{ color: fill >= 80 ? '#f87171' : fill >= 50 ? '#fbbf24' : '#34d399' }}>
+                                  {fill}%
+                                </span>
+                              </div>
+                              <div className="bin-cell__meter-track">
+                                <div 
+                                  className="bin-cell__meter-fill" 
+                                  style={{ 
+                                    width: `${fill}%`, 
+                                    background: catInfo.color 
+                                  }} 
+                                />
+                              </div>
+                            </div>
+
+                            {/* Item Count & SLA */}
+                            <div className="bin-cell__meta-row">
+                              <span className="bin-cell__items-count">
+                                <strong>{binEvents.length}</strong> items logged
+                              </span>
+                              <span className={`bin-cell__sla-text bin-cell__sla-text--${binSla.status.toLowerCase()}`}>
+                                <Clock size={11} />
+                                {binSla.text}
+                              </span>
+                            </div>
+
+                            {/* Bin Action */}
+                            <button
+                              type="button"
+                              className="bin-cell__action-btn"
+                              onClick={() => handleConfirmBinPickup(bin.id, ward.name, catInfo.label)}
+                            >
+                              <RotateCcw size={13} />
+                              <span>Confirm Bin Pickup</span>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
 
-      {/* VIEW 2: Route Optimization Map */}
+      {/* VIEW 2: Route Optimization Corridor Map */}
       {viewMode === 'route' && (
         <div className="route-view">
           <div className="route-view__metrics">
             <div className="route-metric">
-              <span className="route-metric__label">Active Pickups</span>
-              <span className="route-metric__value">{tasks.length} Stations</span>
+              <span className="route-metric__label">Stations Active</span>
+              <span className="route-metric__value">{wardEntries.length} Wards</span>
             </div>
             <div className="route-metric">
-              <span className="route-metric__label">Cycle Time</span>
-              <span className="route-metric__value">{Math.max(6, tasks.length * 4)} Mins</span>
+              <span className="route-metric__label">Urgent Bins</span>
+              <span className="route-metric__value route-metric__value--highlight">
+                {criticalBins.length} Over 80%
+              </span>
             </div>
             <div className="route-metric">
-              <span className="route-metric__label">Transit Savings</span>
-              <span className="route-metric__value route-metric__value--highlight">28% Less Exposure</span>
+              <span className="route-metric__label">Exposure Risk</span>
+              <span className="route-metric__value text-emerald">Minimal / Compliant</span>
             </div>
           </div>
 
@@ -250,10 +424,10 @@ export default function TaskList() {
               </pattern>
               <rect width="400" height="320" fill="url(#grid)" />
 
-              {/* Hospital Corridor Boundary */}
+              {/* Facility Floorplan Boundary */}
               <rect x="20" y="20" width="360" height="280" rx="16" fill="rgba(15, 23, 42, 0.7)" stroke="rgba(56, 189, 248, 0.25)" strokeWidth="1.5" />
               <text x="35" y="45" fill="#64748b" fontSize="9" fontWeight="700" letterSpacing="1" fontFamily="JetBrains Mono">
-                FACILITY FLOORPLAN • LEVEL 1-3 CORRIDOR MATRIX
+                FACILITY FLOORPLAN • WARD LOGISTICS MATRIX
               </text>
 
               {/* Transit Path Line */}
@@ -266,7 +440,7 @@ export default function TaskList() {
                 className="route-path-animated"
               />
 
-              {/* Central Bio-Waste Bay Node */}
+              {/* Central Bio-Waste Collection Hub */}
               <g transform="translate(55, 255)">
                 <circle r="14" fill="#0b1329" stroke="#10b981" strokeWidth="2.5" filter="url(#glow)" />
                 <circle r="5" fill="#10b981" />
@@ -276,29 +450,30 @@ export default function TaskList() {
               </g>
 
               {/* Hospital Wards Nodes */}
-              {Object.entries(HOSPITAL_WARDS).map(([wId, ward]) => {
-                const hasTask = tasks.some(t => t.wardId === wId);
+              {wardEntries.map(([wId, ward]) => {
+                const wardBins = bins.filter(b => b.wardId === wId);
+                const hasOver = wardBins.some(b => (b.fillPercent || 0) >= 80);
                 const x = ward.coords.x * 3.6;
                 const y = ward.coords.y * 2.8;
-                const isSelected = selectedPin && selectedPin.id === wId;
+                const isSelected = selectedMapWard && selectedMapWard.id === wId;
 
                 return (
                   <g
                     key={wId}
                     transform={`translate(${x}, ${y})`}
                     className="route-pin"
-                    onClick={() => setSelectedPin(ward)}
+                    onClick={() => setSelectedMapWard(ward)}
                     style={{ cursor: 'pointer' }}
                   >
                     <circle
-                      r={hasTask ? 16 : 11}
-                      fill={hasTask ? '#ef4444' : '#1e293b'}
-                      stroke={isSelected ? '#38bdf8' : hasTask ? '#fee2e2' : '#475569'}
-                      strokeWidth={isSelected ? 3 : hasTask ? 2 : 1}
-                      filter={hasTask || isSelected ? 'url(#glow)' : undefined}
-                      className={hasTask ? 'pin-pulse' : ''}
+                      r={hasOver ? 16 : 12}
+                      fill={hasOver ? '#ef4444' : '#1e293b'}
+                      stroke={isSelected ? '#38bdf8' : hasOver ? '#fee2e2' : '#475569'}
+                      strokeWidth={isSelected ? 3 : hasOver ? 2 : 1.2}
+                      filter={hasOver || isSelected ? 'url(#glow)' : undefined}
+                      className={hasOver ? 'pin-pulse' : ''}
                     />
-                    <text y="3.5" textAnchor="middle" fill={hasTask ? '#ffffff' : '#94a3b8'} fontSize="9" fontWeight="700" fontFamily="JetBrains Mono">
+                    <text y="3.5" textAnchor="middle" fill={hasOver ? '#ffffff' : '#94a3b8'} fontSize="9" fontWeight="700" fontFamily="JetBrains Mono">
                       {wId.replace('ward-', 'W')}
                     </text>
                     <text y="24" textAnchor="middle" fill={isSelected ? '#38bdf8' : '#cbd5e1'} fontSize="8" fontWeight="600">
@@ -311,56 +486,64 @@ export default function TaskList() {
           </div>
 
           {/* Interactive Selected Station Popover */}
-          {selectedPin && (
+          {selectedMapWard && (
             <div className="route-station-card">
               <div className="route-station-card__header">
                 <div>
-                  <h4 className="route-station-card__title">{selectedPin.name}</h4>
-                  <p className="route-station-card__sub">{selectedPin.floor} • Node {selectedPin.id.toUpperCase()}</p>
+                  <h4 className="route-station-card__title">{selectedMapWard.name}</h4>
+                  <p className="route-station-card__sub">{selectedMapWard.floor} • Node {selectedMapWard.id.toUpperCase()}</p>
                 </div>
                 <button 
                   type="button"
                   className="route-station-card__close"
-                  onClick={() => setSelectedPin(null)}
+                  onClick={() => setSelectedMapWard(null)}
                   title="Close station details"
                 >
-                  <X size={16} />
+                  ✕
                 </button>
               </div>
 
               <div className="route-station-card__body">
-                {tasks.filter(t => t.wardId === selectedPin.id).length > 0 ? (
-                  <div className="route-station-card__tasks">
-                    {tasks.filter(t => t.wardId === selectedPin.id).map(t => {
-                      const cInfo = CATEGORY_INFO[t.category] || CATEGORY_INFO.unknown;
-                      return (
-                        <div key={t.id} className="route-station-task-row">
-                          <div className="route-station-task-meta">
-                            <span className="route-station-task-dot" style={{ background: cInfo.color }} />
-                            <div>
-                              <span className="route-station-task-label" style={{ color: cInfo.color }}>{cInfo.label}</span>
-                              <span className="route-station-task-reason">{t.reason || 'Pending porter transit'}</span>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            className="route-station-collect-btn"
-                            onClick={() => handleCollect(t.id)}
-                            disabled={collecting === t.id}
-                          >
-                            <CheckCircle2 size={13} />
-                            <span>Collect</span>
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="route-station-card__clear">
-                    <CheckCircle2 size={16} className="text-emerald" />
-                    <span>All bins in this ward are currently below 80% threshold.</span>
-                  </div>
-                )}
+                <div className="route-station-card__bins">
+                  {['yellow', 'red', 'white', 'blue'].map(cat => {
+                    const b = bins.find(item => item.wardId === selectedMapWard.id && item.category === cat) || {
+                      id: `bin-${cat}-${selectedMapWard.id}`,
+                      fillPercent: 0
+                    };
+                    const cInfo = CATEGORY_INFO[cat] || CATEGORY_INFO.unknown;
+                    const fill = b.fillPercent || 0;
+
+                    return (
+                      <div key={cat} className="route-station-bin-pill">
+                        <span className="route-station-bin-dot" style={{ background: cInfo.color }} />
+                        <span className="route-station-bin-name">{cInfo.label.split(' ')[0]}</span>
+                        <span className="route-station-bin-pct" style={{ color: fill >= 80 ? '#f87171' : '#cbd5e1' }}>
+                          {fill}%
+                        </span>
+                        <button
+                          type="button"
+                          className="route-station-reset-btn"
+                          onClick={() => handleConfirmBinPickup(b.id, selectedMapWard.name, cInfo.label)}
+                          title="Reset Bin"
+                        >
+                          <RotateCcw size={11} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  className="route-station-collect-ward-btn"
+                  onClick={() => {
+                    handleConfirmWardPickup(selectedMapWard.id, selectedMapWard.name);
+                    setSelectedMapWard(null);
+                  }}
+                >
+                  <CheckCircle2 size={14} />
+                  <span>Confirm Pickup for Entire Ward</span>
+                </button>
               </div>
             </div>
           )}
@@ -368,7 +551,7 @@ export default function TaskList() {
           <div className="route-view__tip">
             <Sparkles size={16} className="text-sky" />
             <span>
-              <strong>Demand-Driven Dispatch:</strong> Tap any station pin on the floorplan to inspect live ward logistics and immediately acknowledge collections.
+              <strong>Floorplan Navigation:</strong> Tap any station pin to view 4-bin capacity status and immediately confirm ward transit collections.
             </span>
           </div>
         </div>

@@ -257,22 +257,25 @@ export async function addWasteEvent(eventData) {
     createdAt: new Date().toISOString()
   };
 
-  // 1. Always update Local Storage & notify instant bus
+  // 1. Always update Local Storage & notify instant bus immediately
   const current = getLocalEvents();
   setLocalEvents([fullEvent, ...current]);
 
   // 2. Increment matching bin fill level automatically
   await updateBinFill(eventData.category, eventData.wardId || 'ward-1', 12);
 
-  // 3. Write to Cloud Firestore if connected
+  // 3. Fire-and-forget Cloud Firestore write if available
   if (isFirebaseAvailable()) {
     try {
-      await addDoc(collection(db, 'wasteEvents'), {
-        ...eventData,
-        createdAt: Timestamp.now()
-      });
+      Promise.race([
+        addDoc(collection(db, 'wasteEvents'), {
+          ...eventData,
+          createdAt: Timestamp.now()
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500))
+      ]).catch(e => console.warn('Cloud sync background note:', e.message));
     } catch (e) {
-      console.warn('Cloud Firestore write failed, persisted locally:', e);
+      console.warn('Cloud write skipped:', e);
     }
   }
 
@@ -280,23 +283,33 @@ export async function addWasteEvent(eventData) {
 }
 
 export function subscribeToWasteEvents(wardId, callback) {
+  // Synchronous immediate dispatch from local store
+  const unsubLocal = attachLocalEventsListener(wardId, callback);
+
   if (isFirebaseAvailable()) {
     try {
       let q = wardId
         ? query(collection(db, 'wasteEvents'), where('wardId', '==', wardId), orderBy('createdAt', 'desc'), limit(50))
         : query(collection(db, 'wasteEvents'), orderBy('createdAt', 'desc'), limit(50));
-      return onSnapshot(q, (snapshot) => {
-        const events = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        callback(events);
+      
+      const unsubCloud = onSnapshot(q, (snapshot) => {
+        if (snapshot && !snapshot.empty) {
+          const events = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          callback(events);
+        }
       }, (_err) => {
-        // Fallback to local
-        attachLocalEventsListener(wardId, callback);
+        // Ignored, local listener is already active
       });
+
+      return () => {
+        unsubLocal();
+        try { unsubCloud(); } catch {}
+      };
     } catch (_e) {
-      return attachLocalEventsListener(wardId, callback);
+      return unsubLocal;
     }
   }
-  return attachLocalEventsListener(wardId, callback);
+  return unsubLocal;
 }
 
 function attachLocalEventsListener(wardId, callback) {
@@ -305,7 +318,7 @@ function attachLocalEventsListener(wardId, callback) {
     callback(filtered);
   };
   listeners.events.add(handler);
-  // Fire immediately
+  // Fire immediately and synchronously
   handler(getLocalEvents());
   return () => {
     listeners.events.delete(handler);
@@ -333,19 +346,22 @@ export async function requestPickup(category, wardId, reason = 'Staff manual req
     assignedTo: 'On-Duty Porter'
   };
 
-  // Local sync
+  // Local sync immediate
   const current = getLocalTasks();
   setLocalTasks([newTask, ...current.filter(t => t.binId !== binId || t.status !== 'pending')]);
 
-  // Cloud Firestore
+  // Non-blocking cloud write
   if (isFirebaseAvailable()) {
     try {
-      await addDoc(collection(db, 'collectionTasks'), {
-        ...newTask,
-        requestedAt: Timestamp.now()
-      });
+      Promise.race([
+        addDoc(collection(db, 'collectionTasks'), {
+          ...newTask,
+          requestedAt: Timestamp.now()
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500))
+      ]).catch(() => {});
     } catch (e) {
-      console.warn('Cloud pickup request skipped:', e);
+      console.warn('Cloud task write skipped:', e);
     }
   }
 
@@ -353,33 +369,51 @@ export async function requestPickup(category, wardId, reason = 'Staff manual req
 }
 
 export function subscribeToCollectionTasks(callback) {
+  const unsubLocal = attachLocalTasksListener(true, callback);
+
   if (isFirebaseAvailable()) {
     try {
       const q = query(collection(db, 'collectionTasks'), where('status', '==', 'pending'), orderBy('requestedAt', 'desc'));
-      return onSnapshot(q, (snapshot) => {
-        const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        callback(tasks);
-      }, () => attachLocalTasksListener(true, callback));
+      const unsubCloud = onSnapshot(q, (snapshot) => {
+        if (snapshot && !snapshot.empty) {
+          const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          callback(tasks);
+        }
+      }, () => {});
+
+      return () => {
+        unsubLocal();
+        try { unsubCloud(); } catch {}
+      };
     } catch (_e) {
-      return attachLocalTasksListener(true, callback);
+      return unsubLocal;
     }
   }
-  return attachLocalTasksListener(true, callback);
+  return unsubLocal;
 }
 
 export function subscribeToAllCollectionTasks(callback) {
+  const unsubLocal = attachLocalTasksListener(false, callback);
+
   if (isFirebaseAvailable()) {
     try {
       const q = query(collection(db, 'collectionTasks'), orderBy('requestedAt', 'desc'), limit(50));
-      return onSnapshot(q, (snapshot) => {
-        const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        callback(tasks);
-      }, () => attachLocalTasksListener(false, callback));
+      const unsubCloud = onSnapshot(q, (snapshot) => {
+        if (snapshot && !snapshot.empty) {
+          const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          callback(tasks);
+        }
+      }, () => {});
+
+      return () => {
+        unsubLocal();
+        try { unsubCloud(); } catch {}
+      };
     } catch (_e) {
-      return attachLocalTasksListener(false, callback);
+      return unsubLocal;
     }
   }
-  return attachLocalTasksListener(false, callback);
+  return unsubLocal;
 }
 
 function attachLocalTasksListener(pendingOnly, callback) {
@@ -425,33 +459,111 @@ export async function markTaskCollected(taskId) {
     setLocalBins(updatedBins);
   }
 
+  // Non-blocking fire-and-forget update
   if (isFirebaseAvailable()) {
     try {
       const ref = doc(db, 'collectionTasks', taskId);
-      await updateDoc(ref, {
-        status: 'collected',
-        completedAt: Timestamp.now()
-      });
+      Promise.race([
+        updateDoc(ref, {
+          status: 'collected',
+          completedAt: Timestamp.now()
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500))
+      ]).catch(() => {});
     } catch (e) {
       console.warn('Cloud update skipped:', e);
     }
   }
 }
 
+/**
+ * Reset a specific bin to 0% fill and clear its active pending tasks
+ */
+export async function markBinCollected(binId) {
+  const now = Date.now();
+  const bins = getLocalBins();
+  const targetBin = bins.find(b => b.id === binId);
+
+  const updatedBins = bins.map(b => {
+    if (b.id === binId) {
+      return {
+        ...b,
+        fillPercent: 0,
+        lastEmptiedAt: now,
+        slaStartedAt: now,
+        slaDeadline: now + (48 * 3600 * 1000)
+      };
+    }
+    return b;
+  });
+  setLocalBins(updatedBins);
+
+  // Also resolve any pending collection tasks for this bin
+  const tasks = getLocalTasks();
+  const updatedTasks = tasks.map(t => {
+    if (t.binId === binId || (targetBin && t.wardId === targetBin.wardId && t.category === targetBin.category)) {
+      return { ...t, status: 'collected', completedAt: new Date().toISOString() };
+    }
+    return t;
+  });
+  setLocalTasks(updatedTasks);
+}
+
+/**
+ * Reset all 4 statutory bins for an entire ward and clear all pending ward tasks
+ */
+export async function markWardCollected(wardId) {
+  const now = Date.now();
+  const bins = getLocalBins();
+
+  const updatedBins = bins.map(b => {
+    if (b.wardId === wardId) {
+      return {
+        ...b,
+        fillPercent: 0,
+        lastEmptiedAt: now,
+        slaStartedAt: now,
+        slaDeadline: now + (48 * 3600 * 1000)
+      };
+    }
+    return b;
+  });
+  setLocalBins(updatedBins);
+
+  // Clear all pending tasks in this ward
+  const tasks = getLocalTasks();
+  const updatedTasks = tasks.map(t => {
+    if (t.wardId === wardId && t.status === 'pending') {
+      return { ...t, status: 'collected', completedAt: new Date().toISOString() };
+    }
+    return t;
+  });
+  setLocalTasks(updatedTasks);
+}
+
 // ── Bins Management API ──
 export function subscribeToBins(callback) {
+  const unsubLocal = attachLocalBinsListener(callback);
+
   if (isFirebaseAvailable()) {
     try {
       const q = query(collection(db, 'bins'));
-      return onSnapshot(q, (snapshot) => {
-        const bins = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        callback(bins);
-      }, () => attachLocalBinsListener(callback));
+      const unsubCloud = onSnapshot(q, (snapshot) => {
+        if (snapshot && !snapshot.empty) {
+          const bins = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          callback(bins);
+        }
+      }, () => {});
+
+      return () => {
+        unsubLocal();
+        try { unsubCloud(); } catch {}
+      };
     } catch (_e) {
-      return attachLocalBinsListener(callback);
+      return unsubLocal;
     }
   }
-  return attachLocalBinsListener(callback);
+  return unsubLocal;
 }
 
 function attachLocalBinsListener(callback) {
