@@ -4,10 +4,12 @@
 
 .dash {
   min-height: 100%;
-  padding: 1.25rem 1.25rem 80px 1.25rem;
+  width: 100%;
+  padding: 1.25rem 1.25rem calc(95px + env(safe-area-inset-bottom, 15px)) 1.25rem;
   background: #050811;
   max-width: 960px;
   margin: 0 auto;
+  overflow-y: visible;
 }
 
 .dash__header {

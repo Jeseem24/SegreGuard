@@ -4,14 +4,15 @@
 
 .role-picker {
   min-height: 100dvh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 1.5rem;
+  justify-content: flex-start;
+  padding: 2.5rem 1.25rem 5rem 1.25rem;
   background: #050811;
   position: relative;
-  overflow-y: auto;
+  overflow-y: visible;
 }
 
 .role-picker__ambient-glow {
