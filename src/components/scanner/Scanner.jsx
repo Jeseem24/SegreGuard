@@ -82,10 +82,52 @@ export default function Scanner() {
     };
   }, [aiMode, scanState]);
 
+  const [analysisStep, setAnalysisStep] = useState(1);
+
+  // Audio synthesis chirp & mobile haptic tap
+  const triggerChirp = (type = 'scan') => {
+    try {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(type === 'success' ? [35, 30, 45] : [35]);
+      }
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        if (type === 'scan') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(520, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1100, ctx.currentTime + 0.14);
+          gain.gain.setValueAtTime(0.1, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.14);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.14);
+        } else {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(780, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.18);
+          gain.gain.setValueAtTime(0.12, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.18);
+        }
+      }
+    } catch (_e) {}
+  };
+
   // Commit scan result (from live tracked item or sample click)
   const handleCommitScan = useCallback(async (customResult = null) => {
     if (scanState === 'scanning') return;
     setScanState('scanning');
+    setAnalysisStep(1);
+    triggerChirp('scan');
+
+    const step2Timer = setTimeout(() => setAnalysisStep(2), 300);
+    const step3Timer = setTimeout(() => setAnalysisStep(3), 600);
 
     try {
       let classification = customResult;
@@ -100,6 +142,10 @@ export default function Scanner() {
         }
       }
 
+      clearTimeout(step2Timer);
+      clearTimeout(step3Timer);
+
+      triggerChirp('success');
       setResult(classification);
       setScanState('result');
 
@@ -124,6 +170,8 @@ export default function Scanner() {
       const docId = await addWasteEvent(eventData);
       setLastSaved(docId);
     } catch (err) {
+      clearTimeout(step2Timer);
+      clearTimeout(step3Timer);
       console.error('Scan commit failed:', err);
       setScanState('idle');
     }
@@ -260,15 +308,32 @@ export default function Scanner() {
           </div>
         )}
 
-        {/* Scanning Spinner Overlay */}
+        {/* High-Tech Tactical Scanning & Analysis Overlay */}
         {scanState === 'scanning' && (
           <div className="scanner__analyzing-overlay">
+            <div className="scanner__scanning-laser-cone" />
             <div className="scanner__radar-ring" />
-            <p className="scanner__analyzing-text">
-              {aiMode === 'gemini'
-                ? 'Reasoning with Google Gemini 2.5 Flash Multimodal…'
-                : 'Auditing CPCB 2016 Schedule I Rules…'}
-            </p>
+            
+            <div className="scanner__analyzing-status">
+              <h4 className="scanner__analyzing-headline">
+                {aiMode === 'gemini' ? 'Gemini 2.5 Flash Cloud Vision' : 'Edge Neuro-Symbolic Engine'}
+              </h4>
+
+              <div className="scanner__analysis-steps">
+                <div className={`analysis-step-pill ${analysisStep >= 1 ? 'analysis-step-pill--active' : ''}`}>
+                  <span className="analysis-step-dot" />
+                  <span>1. Object Morphology & Contours</span>
+                </div>
+                <div className={`analysis-step-pill ${analysisStep >= 2 ? 'analysis-step-pill--active' : ''}`}>
+                  <span className="analysis-step-dot" />
+                  <span>2. CPCB BMW 2016 Schedule I Rules</span>
+                </div>
+                <div className={`analysis-step-pill ${analysisStep >= 3 ? 'analysis-step-pill--active' : ''}`}>
+                  <span className="analysis-step-dot" />
+                  <span>3. 48-Hour SLA Custody Protocol</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

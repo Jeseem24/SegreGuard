@@ -69,34 +69,94 @@ export const CPCB_SCHEDULE_I_RULES = {
 
 /**
  * Maps raw detected object classes to statutory CPCB Schedule I categories
+ * Includes both clinical terms and common physical surrogates (bottles, pens, scissors, tissues).
  * @param {string} rawClass - Machine learning output label
  * @returns {Object} Deterministic regulatory decision
  */
 export function evaluateLegalCategory(rawClass) {
   const normalized = (rawClass || '').toLowerCase().trim();
 
-  if (normalized.includes('needle') || normalized.includes('scalpel') || normalized.includes('blade') || normalized.includes('fixed needle')) {
+  // 1. WHITE CONTAINER: Sharps, Needles, Scalpels, Blades
+  if (
+    normalized.includes('needle') || 
+    normalized.includes('scalpel') || 
+    normalized.includes('blade') || 
+    normalized.includes('scissor') || 
+    normalized.includes('knife') || 
+    normalized.includes('razor') || 
+    normalized.includes('tweezers') ||
+    normalized.includes('sharp')
+  ) {
     return { ...CPCB_SCHEDULE_I_RULES.sharps_waste, categoryKey: 'white', label: 'White Container (Sharps)' };
   }
-  if (normalized.includes('mask') || normalized.includes('cotton') || normalized.includes('bandage') || normalized.includes('anatomical')) {
-    return { ...CPCB_SCHEDULE_I_RULES.soiled_waste, categoryKey: 'yellow', label: 'Yellow Bin' };
+
+  // 2. YELLOW BIN: Anatomical, Soiled dressings, Cotton, Gauze, Blood-stained PPE
+  if (
+    normalized.includes('mask') || 
+    normalized.includes('cotton') || 
+    normalized.includes('bandage') || 
+    normalized.includes('gauze') || 
+    normalized.includes('tissue') || 
+    normalized.includes('dressing') || 
+    normalized.includes('anatomical') || 
+    normalized.includes('blood') ||
+    normalized.includes('plaster')
+  ) {
+    return { ...CPCB_SCHEDULE_I_RULES.soiled_waste, categoryKey: 'yellow', label: 'Yellow Bin (Infectious)' };
   }
-  if (normalized.includes('syringe') || normalized.includes('glove') || normalized.includes('iv tube') || normalized.includes('catheter') || normalized.includes('plastic')) {
-    return { ...CPCB_SCHEDULE_I_RULES.contaminated_plastics, categoryKey: 'red', label: 'Red Bin' };
+
+  // 3. RED BIN: Contaminated Plastics, Syringes (w/o needle), IV Tubes, Catheters, Gloves, Plastic Bottles
+  if (
+    normalized.includes('syringe') || 
+    normalized.includes('glove') || 
+    normalized.includes('tube') || 
+    normalized.includes('tubing') || 
+    normalized.includes('catheter') || 
+    normalized.includes('plastic') || 
+    normalized.includes('bottle') || 
+    normalized.includes('pen') || 
+    normalized.includes('marker') || 
+    normalized.includes('toothbrush') ||
+    normalized.includes('saline')
+  ) {
+    return { ...CPCB_SCHEDULE_I_RULES.contaminated_plastics, categoryKey: 'red', label: 'Red Bin (Recyclable Plastic)' };
   }
-  if (normalized.includes('vial') || normalized.includes('ampoule') || normalized.includes('glass') || normalized.includes('implant')) {
-    return { ...CPCB_SCHEDULE_I_RULES.glassware_implants, categoryKey: 'blue', label: 'Blue Bin' };
+
+  // 4. BLUE CONTAINER: Glassware, Medicine Vials, Glass Ampoules, Metal Implants
+  if (
+    normalized.includes('vial') || 
+    normalized.includes('ampoule') || 
+    normalized.includes('glass') || 
+    normalized.includes('implant') || 
+    normalized.includes('wine glass') || 
+    normalized.includes('cup') ||
+    normalized.includes('flask') ||
+    normalized.includes('jar')
+  ) {
+    return { ...CPCB_SCHEDULE_I_RULES.glassware_implants, categoryKey: 'blue', label: 'Blue Container (Glassware)' };
   }
-  if (normalized.includes('wrapper') || normalized.includes('food') || normalized.includes('paper') || normalized.includes('box')) {
+
+  // 5. BLACK BIN: General Municipal Solid Waste (Non-infectious food, wrappers, boxes, office paper)
+  if (
+    normalized.includes('wrapper') || 
+    normalized.includes('food') || 
+    normalized.includes('paper') || 
+    normalized.includes('box') || 
+    normalized.includes('cardboard') || 
+    normalized.includes('bag') || 
+    normalized.includes('can') ||
+    normalized.includes('snack') ||
+    normalized.includes('container')
+  ) {
     return { ...CPCB_SCHEDULE_I_RULES.general_municipal, categoryKey: 'black', label: 'Black Bin (General Waste)' };
   }
 
   return {
     category: 'unknown',
     categoryKey: 'unknown',
-    label: 'Unable to Certify',
-    ruleCitation: 'CPCB Rule 8(2): Ambiguous bio-waste must be held for qualified manual inspection before binning',
-    disposalRoute: 'Manual Clinical Verification Required',
+    label: 'Statutory Manual Review',
+    ruleCitation: 'CPCB Rule 8(2): Ambiguous clinical items require second-tier visual arbitration',
+    disposalRoute: 'Manual Verification Required Before Binning',
     colorHex: '#FF8F00',
     storageMaxHours: 48
   };
