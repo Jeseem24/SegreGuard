@@ -1,0 +1,11 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // DEMO MODE: Allow all reads and writes
+    // In production, this would be locked down by role
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

@@ -1,0 +1,391 @@
+.tasks {
+  min-height: 100%;
+  padding: 1.25rem 1rem;
+  padding-bottom: 90px;
+  background: #0a0f1c;
+}
+
+.tasks__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.tasks__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0 0 0.2rem 0;
+}
+
+.tasks__subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.tasks__live-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.tasks__live-dot {
+  width: 7px;
+  height: 7px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+}
+
+/* ── View Toggle ── */
+.tasks__view-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.25rem;
+  border-radius: 10px;
+}
+
+.tasks__toggle-btn {
+  padding: 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.tasks__toggle-btn--active {
+  background: #1e293b;
+  color: #f1f5f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Loading ── */
+.tasks__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 0;
+  color: #64748b;
+}
+
+.tasks__spinner {
+  width: 32px;
+  height: 32px;
+  border: 2.5px solid rgba(59, 130, 246, 0.12);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── Empty ── */
+.tasks__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #94a3b8;
+}
+
+.tasks__empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.tasks__empty h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin: 0 0 0.5rem 0;
+}
+
+.tasks__empty p {
+  font-size: 0.85rem;
+  max-width: 280px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── List ── */
+.tasks__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* ── Task Card ── */
+.task-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 4px solid var(--task-color);
+  border-radius: 14px;
+  padding: 1.125rem;
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.task-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.task-card__bin {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.task-card__dot {
+  width: 14px;
+  height: 14px;
+  background: var(--task-color);
+  border-radius: 50%;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--task-color) 50%, transparent);
+}
+
+.task-card__bin-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.task-card__time {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.task-card__location {
+  margin-bottom: 0.75rem;
+}
+
+.task-card__ward-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0 0 0.15rem 0;
+}
+
+.task-card__floor {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* ── Statutory 48-Hour SLA Countdown Badge ── */
+.task-card__sla {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.task-card__sla--normal {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.task-card__sla--warning {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+}
+
+.task-card__sla--critical,
+.task-card__sla--breach {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+  animation: slaBlink 1.5s infinite;
+}
+
+@keyframes slaBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
+.task-card__sla-left {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.task-card__trigger-reason {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-bottom: 0.875rem;
+  line-height: 1.4;
+}
+
+.task-card__trigger-reason span {
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.task-card__collect-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.8rem;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 10px;
+  color: #10b981;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.task-card__collect-btn:active {
+  background: rgba(16, 185, 129, 0.25);
+  transform: scale(0.98);
+}
+
+.task-card__collect-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.task-card__btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(16, 185, 129, 0.2);
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+/* ── Route View ── */
+.route-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.route-view__metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.route-metric {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+.route-metric__label {
+  display: block;
+  font-size: 0.62rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+}
+
+.route-metric__value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.text-emerald {
+  color: #10b981 !important;
+}
+
+.route-map-container {
+  background: #020617;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.route-map {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.route-path-animated {
+  animation: dash 20s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.pin-pulse {
+  animation: pinGlow 2s ease-in-out infinite;
+}
+
+@keyframes pinGlow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+.route-view__tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  background: rgba(59, 130, 246, 0.08);
+  border-left: 3px solid #3b82f6;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.route-view__tip-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
