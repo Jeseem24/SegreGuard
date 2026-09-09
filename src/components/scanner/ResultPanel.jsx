@@ -1,10 +1,21 @@
 import React from 'react';
 import { CATEGORY_INFO, CONFIDENCE_THRESHOLD } from '../../classifiers/classifierInterface.js';
+import { 
+  Scale, 
+  Clock, 
+  Edit3, 
+  Truck, 
+  ShieldAlert, 
+  ShieldCheck, 
+  CheckCircle2, 
+  AlertTriangle,
+  Volume2
+} from 'lucide-react';
 
 /**
  * ResultPanel:
- * - High confidence: color-matched statutory CPCB bin panel with rule citation & disposal method
- * - Low confidence: amber fail-closed "Manual Verification Required" panel
+ * Agency-grade Double-Bezel result card with statutory CPCB color aura,
+ * high-contrast typography, and Lucide SVG icons.
  */
 export default function ResultPanel({ result, onCorrect, onRequestPickup }) {
   if (!result) return null;
@@ -13,60 +24,106 @@ export default function ResultPanel({ result, onCorrect, onRequestPickup }) {
   const category = isLowConfidence ? 'unknown' : result.category;
   const info = CATEGORY_INFO[category] || CATEGORY_INFO.unknown;
 
+  const playVoice = () => {
+    if ('speechSynthesis' in window) {
+      const text = `${result.itemLabel}. Dispose in ${info.label}. ${info.disposalRoute}`;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   return (
-    <div
-      className={`result-panel ${isLowConfidence ? 'result-panel--low' : 'result-panel--high'}`}
+    <div 
+      className={`result-card-bezel ${isLowConfidence ? 'result-card-bezel--low' : ''}`}
       style={{
         '--bin-color': info.color,
-        '--bin-bg': info.bgColor,
-        '--bin-text': info.textColor
+        '--bin-glow': `${info.color}33`
       }}
     >
-      <div className="result-panel__bin-indicator">
-        <div className="result-panel__bin-dot" />
-        <span className="result-panel__bin-label">{info.label}</span>
-        {info.badge && <span className="result-panel__badge">{info.badge}</span>}
-      </div>
-
-      <div className="result-panel__content">
-        <h3 className="result-panel__item">{result.itemLabel}</h3>
-        <p className="result-panel__route"><strong>Disposal Route:</strong> {info.disposalRoute}</p>
-
-        {/* Regulatory Citation (GAP 1 & GAP 2) */}
-        <div className="result-panel__citation">
-          <span className="result-panel__citation-icon">⚖️</span>
-          <span className="result-panel__citation-text">
-            {result.ruleCitation || info.ruleCitation || 'CPCB BMW Rules 2016 (Schedule I)'}
-          </span>
-        </div>
-
-        <div className="result-panel__confidence">
-          <div className="result-panel__confidence-bar">
-            <div
-              className="result-panel__confidence-fill"
-              style={{ width: `${Math.round(result.confidence * 100)}%` }}
-            />
+      <div className="result-card-core">
+        {/* Top Header Strip */}
+        <div className="result-card__header">
+          <div className="result-card__bin-tag" style={{ background: `${info.color}22`, borderColor: `${info.color}66` }}>
+            <span className="result-card__bin-dot" style={{ background: info.color, boxShadow: `0 0 8px ${info.color}` }} />
+            <span className="result-card__bin-name" style={{ color: info.color }}>{info.label}</span>
           </div>
-          <div className="result-panel__confidence-meta">
-            <span className="result-panel__confidence-value">
-              {Math.round(result.confidence * 100)}% Confidence
-            </span>
-            <span className="result-panel__sla-chip">
-              ⏱️ 48h Statutory SLA
+
+          <div className="result-card__badges">
+            <button 
+              className="result-card__voice-btn" 
+              onClick={playVoice}
+              title="Play Statutory Audio Guidance"
+            >
+              <Volume2 size={14} />
+            </button>
+            <span className="result-card__sla-chip">
+              <Clock size={12} className="result-card__sla-icon" />
+              <span>48h CPCB SLA</span>
             </span>
           </div>
         </div>
-      </div>
 
-      <div className="result-panel__actions">
-        <button className="result-panel__btn result-panel__btn--correct" onClick={onCorrect}>
-          {isLowConfidence ? '🏷️ Select Category Manually' : '✏️ Not this? Correct it'}
-        </button>
-        {!isLowConfidence && (
-          <button className="result-panel__btn result-panel__btn--pickup" onClick={onRequestPickup}>
-            ⚡ Dispatch Collection Porter
+        {/* Item Identification & Disposal Method */}
+        <div className="result-card__main">
+          <div className="result-card__title-row">
+            <h3 className="result-card__item-title">{result.itemLabel}</h3>
+            <span className="result-card__confidence-pill">
+              {Math.round(result.confidence * 100)}% Match
+            </span>
+          </div>
+
+          <p className="result-card__disposal">
+            <span className="result-card__disposal-label">Treatment Protocol:</span> {info.disposalRoute}
+          </p>
+
+          {/* Statutory Citation Box */}
+          <div className="result-card__citation">
+            <Scale size={15} className="result-card__citation-icon" style={{ color: info.color }} />
+            <div className="result-card__citation-content">
+              <span className="result-card__citation-title">CPCB BMW Rules 2016 (Schedule I)</span>
+              <span className="result-card__citation-text">
+                {result.ruleCitation || info.ruleCitation || 'Statutory segregation protocol enforced at source.'}
+              </span>
+            </div>
+          </div>
+
+          {/* Confidence Track */}
+          <div className="result-card__meter">
+            <div className="result-card__meter-bar">
+              <div 
+                className="result-card__meter-fill" 
+                style={{ 
+                  width: `${Math.round(result.confidence * 100)}%`,
+                  background: info.color,
+                  boxShadow: `0 0 10px ${info.color}`
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="result-card__actions">
+          <button 
+            className="result-btn result-btn--edit" 
+            onClick={onCorrect}
+          >
+            <Edit3 size={14} />
+            <span>{isLowConfidence ? 'Manual Verify' : 'Reclassify'}</span>
           </button>
-        )}
+
+          {!isLowConfidence && (
+            <button 
+              className="result-btn result-btn--dispatch" 
+              onClick={onRequestPickup}
+              style={{ background: info.color, color: category === 'white' ? '#050811' : '#ffffff' }}
+            >
+              <Truck size={15} />
+              <span>Dispatch Porter</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

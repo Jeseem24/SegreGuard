@@ -3,9 +3,25 @@ import {
   subscribeToCollectionTasks,
   markTaskCollected,
   calculateSlaStatus,
+  requestPickup,
   HOSPITAL_WARDS
 } from '../../lib/firestoreOps.js';
 import { CATEGORY_INFO } from '../../classifiers/classifierInterface.js';
+import { 
+  Boxes, 
+  Map, 
+  Clock, 
+  CheckCircle2, 
+  Truck, 
+  Navigation, 
+  Sparkles, 
+  TrendingDown, 
+  Layers, 
+  PlusCircle,
+  Building2,
+  AlertTriangle,
+  ArrowRight
+} from 'lucide-react';
 import './Tasks.css';
 
 export default function TaskList() {
@@ -17,7 +33,7 @@ export default function TaskList() {
 
   useEffect(() => {
     const unsub = subscribeToCollectionTasks((data) => {
-      setTasks(data);
+      setTasks(data || []);
       setLoading(false);
     });
     return unsub;
@@ -33,15 +49,20 @@ export default function TaskList() {
     setCollecting(null);
   };
 
+  const handleCreateMockPickup = async () => {
+    const wardKeys = Object.keys(HOSPITAL_WARDS);
+    const randomWard = wardKeys[Math.floor(Math.random() * wardKeys.length)];
+    const categories = ['yellow', 'red', 'white', 'blue'];
+    const randomCat = categories[Math.floor(Math.random() * categories.length)];
+    await requestPickup(randomCat, randomWard, 'Immediate Ward Collection Request (Capacity > 80%)');
+  };
+
   if (loading) {
     return (
       <div className="tasks">
-        <div className="tasks__header">
-          <h2 className="tasks__title">Transporter Dispatch</h2>
-        </div>
         <div className="tasks__loading">
           <div className="tasks__spinner" />
-          <p>Connecting real-time dispatch queue…</p>
+          <p className="tasks__loading-text">Connecting real-time logistics dispatch…</p>
         </div>
       </div>
     );
@@ -52,28 +73,33 @@ export default function TaskList() {
       {/* Header */}
       <div className="tasks__header">
         <div>
-          <h2 className="tasks__title">Waste Dispatch & Logistics</h2>
-          <p className="tasks__subtitle">Demand-driven internal hospital porter queue</p>
+          <div className="tasks__title-row">
+            <Truck className="tasks__header-icon" size={20} />
+            <h2 className="tasks__title">Logistics & SLA Dispatch</h2>
+          </div>
+          <p className="tasks__subtitle">Demand-driven transit routing & 48h statutory compliance</p>
         </div>
         <div className="tasks__live-badge">
           <span className="tasks__live-dot" />
-          Live
+          <span>REALTIME</span>
         </div>
       </div>
 
-      {/* View Toggle */}
+      {/* View Mode Toggle */}
       <div className="tasks__view-toggle">
         <button
           className={`tasks__toggle-btn ${viewMode === 'list' ? 'tasks__toggle-btn--active' : ''}`}
           onClick={() => setViewMode('list')}
         >
-          📋 Pickup Queue ({tasks.length})
+          <Boxes size={15} />
+          <span>Active Queue ({tasks.length})</span>
         </button>
         <button
           className={`tasks__toggle-btn ${viewMode === 'route' ? 'tasks__toggle-btn--active' : ''}`}
           onClick={() => setViewMode('route')}
         >
-          🗺️ Optimized Route Map
+          <Navigation size={15} />
+          <span>Corridor Transit Map</span>
         </button>
       </div>
 
@@ -81,16 +107,27 @@ export default function TaskList() {
       {viewMode === 'list' && (
         <>
           {tasks.length === 0 ? (
-            <div className="tasks__empty">
-              <span className="tasks__empty-icon">✅</span>
-              <h3>All Hospital Wards Clear</h3>
-              <p>No bins are currently near capacity or breaching the 48-hour statutory limit.</p>
+            <div className="tasks__empty-card">
+              <div className="tasks__empty-icon-wrap">
+                <CheckCircle2 size={36} className="text-emerald" />
+              </div>
+              <h3 className="tasks__empty-title">All Hospital Wards Clear</h3>
+              <p className="tasks__empty-desc">
+                No active bio-medical waste bags are awaiting transit or breaching the 48-hour statutory threshold.
+              </p>
+              <button 
+                className="tasks__mock-btn"
+                onClick={handleCreateMockPickup}
+              >
+                <PlusCircle size={15} />
+                <span>Simulate Emergency Ward Alert</span>
+              </button>
             </div>
           ) : (
             <div className="tasks__list">
               {tasks.map((task) => {
                 const info = CATEGORY_INFO[task.category] || CATEGORY_INFO.unknown;
-                const ward = HOSPITAL_WARDS[task.wardId] || { name: task.wardId, floor: 'Facility Hub' };
+                const ward = HOSPITAL_WARDS[task.wardId] || { name: task.wardId, floor: 'Floor 2' };
                 const sla = calculateSlaStatus(task.slaDeadline);
 
                 const time = task.requestedAt
@@ -98,60 +135,72 @@ export default function TaskList() {
                       hour: '2-digit',
                       minute: '2-digit'
                     })
-                  : '—';
+                  : 'Just now';
 
                 return (
                   <div
                     key={task.id}
-                    className="task-card"
+                    className="task-card-outer"
                     style={{
                       '--task-color': info.color,
-                      '--task-bg': info.bgColor,
-                      '--task-text': info.textColor
+                      '--task-glow': `${info.color}22`
                     }}
                   >
-                    <div className="task-card__top">
-                      <div className="task-card__bin">
-                        <div className="task-card__dot" />
-                        <span className="task-card__bin-label">{info.label}</span>
+                    <div className="task-card-inner">
+                      {/* Top Meta */}
+                      <div className="task-card__top">
+                        <div className="task-card__bin-badge" style={{ background: `${info.color}20`, borderColor: `${info.color}50` }}>
+                          <span className="task-card__dot" style={{ background: info.color, boxShadow: `0 0 8px ${info.color}` }} />
+                          <span className="task-card__bin-label" style={{ color: info.color }}>{info.label}</span>
+                        </div>
+                        <span className="task-card__time">Logged {time}</span>
                       </div>
-                      <span className="task-card__time">Dispatched {time}</span>
-                    </div>
 
-                    <div className="task-card__location">
-                      <h4 className="task-card__ward-name">{ward.name}</h4>
-                      <p className="task-card__floor">{ward.floor}</p>
-                    </div>
-
-                    {/* Statutory 48-Hour SLA Countdown */}
-                    <div className={`task-card__sla task-card__sla--${sla.status.toLowerCase()}`}>
-                      <div className="task-card__sla-left">
-                        <span className="task-card__sla-icon">⏱️</span>
-                        <span className="task-card__sla-label">48-Hr Statutory SLA:</span>
+                      {/* Location details */}
+                      <div className="task-card__location">
+                        <div className="task-card__ward-icon">
+                          <Building2 size={16} />
+                        </div>
+                        <div>
+                          <h4 className="task-card__ward-name">{ward.name}</h4>
+                          <span className="task-card__floor">{ward.floor}</span>
+                        </div>
                       </div>
-                      <span className="task-card__sla-time">{sla.text}</span>
-                    </div>
 
-                    {task.reason && (
-                      <div className="task-card__trigger-reason">
-                        <span>Trigger:</span> {task.reason}
+                      {/* Statutory 48-Hour SLA Countdown */}
+                      <div className={`task-card__sla task-card__sla--${sla.status.toLowerCase()}`}>
+                        <div className="task-card__sla-left">
+                          <Clock size={13} className="task-card__sla-clock" />
+                          <span className="task-card__sla-label">CPCB 48h Limit:</span>
+                        </div>
+                        <span className="task-card__sla-time">{sla.text}</span>
                       </div>
-                    )}
 
-                    <button
-                      className="task-card__collect-btn"
-                      onClick={() => handleCollect(task.id)}
-                      disabled={collecting === task.id}
-                    >
-                      {collecting === task.id ? (
-                        <>
-                          <span className="task-card__btn-spinner" />
-                          Verifying Handover…
-                        </>
-                      ) : (
-                        '✓ Collect & Reset Bin'
+                      {task.reason && (
+                        <div className="task-card__trigger-reason">
+                          <span className="task-card__trigger-tag">Reason:</span> {task.reason}
+                        </div>
                       )}
-                    </button>
+
+                      {/* Handover Action */}
+                      <button
+                        className="task-card__collect-btn"
+                        onClick={() => handleCollect(task.id)}
+                        disabled={collecting === task.id}
+                      >
+                        {collecting === task.id ? (
+                          <>
+                            <span className="task-card__btn-spinner" />
+                            <span>Verifying Barcode Custody…</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 size={15} />
+                            <span>Confirm Pickup & Reset Bin</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -165,16 +214,16 @@ export default function TaskList() {
         <div className="route-view">
           <div className="route-view__metrics">
             <div className="route-metric">
-              <span className="route-metric__label">Dynamic Stops</span>
-              <span className="route-metric__value">{tasks.length} Active Hubs</span>
+              <span className="route-metric__label">Active Pickups</span>
+              <span className="route-metric__value">{tasks.length} Stations</span>
             </div>
             <div className="route-metric">
-              <span className="route-metric__label">Est. Cycle Time</span>
-              <span className="route-metric__value">{Math.max(8, tasks.length * 5)} Mins</span>
+              <span className="route-metric__label">Cycle Time</span>
+              <span className="route-metric__value">{Math.max(6, tasks.length * 4)} Mins</span>
             </div>
             <div className="route-metric">
-              <span className="route-metric__label">Fuel / Distance Saved</span>
-              <span className="route-metric__value text-emerald">28% (Optimized)</span>
+              <span className="route-metric__label">Transit Savings</span>
+              <span className="route-metric__value route-metric__value--highlight">28% Less Exposure</span>
             </div>
           </div>
 
@@ -182,7 +231,7 @@ export default function TaskList() {
             <svg className="route-map" viewBox="0 0 400 320">
               <defs>
                 <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#3B82F6" />
+                  <stop offset="0%" stopColor="#38BDF8" />
                   <stop offset="100%" stopColor="#10B981" />
                 </linearGradient>
                 <filter id="glow">
@@ -194,34 +243,38 @@ export default function TaskList() {
                 </filter>
               </defs>
 
-              {/* Grid background */}
+              {/* Blueprint Grid */}
               <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
                 <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
               </pattern>
               <rect width="400" height="320" fill="url(#grid)" />
 
-              {/* Facility Boundary & Wings */}
-              <rect x="20" y="20" width="360" height="280" rx="12" fill="rgba(15, 23, 42, 0.6)" stroke="rgba(59, 130, 246, 0.2)" strokeWidth="1.5" />
-              <text x="35" y="45" fill="#64748b" fontSize="10" fontWeight="600" letterSpacing="1">CENTRAL HOSPITAL CAMPUS — LEVEL 1-3</text>
+              {/* Hospital Corridor Boundary */}
+              <rect x="20" y="20" width="360" height="280" rx="16" fill="rgba(15, 23, 42, 0.7)" stroke="rgba(56, 189, 248, 0.25)" strokeWidth="1.5" />
+              <text x="35" y="45" fill="#64748b" fontSize="9" fontWeight="700" letterSpacing="1" fontFamily="JetBrains Mono">
+                FACILITY FLOORPLAN • LEVEL 1-3 CORRIDOR MATRIX
+              </text>
 
-              {/* Connective Route Line */}
+              {/* Transit Path Line */}
               <path
-                d="M 50 260 L 120 120 L 290 90 L 270 240 Z"
-                fill="rgba(59, 130, 246, 0.05)"
+                d="M 55 255 L 125 125 L 285 95 L 270 235 Z"
+                fill="rgba(56, 189, 248, 0.04)"
                 stroke="url(#routeGradient)"
                 strokeWidth="2.5"
                 strokeDasharray="6 4"
                 className="route-path-animated"
               />
 
-              {/* Central Waste Room / CBWTF Bay Node */}
-              <g transform="translate(50, 260)">
-                <circle r="14" fill="#0f172a" stroke="#10b981" strokeWidth="2.5" filter="url(#glow)" />
-                <text y="4" textAnchor="middle" fill="#10b981" fontSize="11" fontWeight="700">⚑</text>
-                <text y="25" textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="600">CBWTF Bay</text>
+              {/* Central Bio-Waste Bay Node */}
+              <g transform="translate(55, 255)">
+                <circle r="14" fill="#0b1329" stroke="#10b981" strokeWidth="2.5" filter="url(#glow)" />
+                <circle r="5" fill="#10b981" />
+                <text y="24" textAnchor="middle" fill="#34d399" fontSize="8.5" fontWeight="700" fontFamily="JetBrains Mono">
+                  CBWTF Bay
+                </text>
               </g>
 
-              {/* Ward Nodes */}
+              {/* Hospital Wards Nodes */}
               {Object.entries(HOSPITAL_WARDS).map(([wId, ward]) => {
                 const hasTask = tasks.some(t => t.wardId === wId);
                 const x = ward.coords.x * 3.6;
@@ -236,17 +289,17 @@ export default function TaskList() {
                     style={{ cursor: 'pointer' }}
                   >
                     <circle
-                      r={hasTask ? 16 : 10}
+                      r={hasTask ? 15 : 10}
                       fill={hasTask ? '#ef4444' : '#1e293b'}
                       stroke={hasTask ? '#fee2e2' : '#475569'}
                       strokeWidth={hasTask ? 2 : 1}
                       filter={hasTask ? 'url(#glow)' : undefined}
                       className={hasTask ? 'pin-pulse' : ''}
                     />
-                    <text y="4" textAnchor="middle" fill={hasTask ? '#fff' : '#94a3b8'} fontSize="10" fontWeight="700">
+                    <text y="3.5" textAnchor="middle" fill={hasTask ? '#ffffff' : '#94a3b8'} fontSize="9" fontWeight="700" fontFamily="JetBrains Mono">
                       {wId.replace('ward-', 'W')}
                     </text>
-                    <text y="26" textAnchor="middle" fill="#cbd5e1" fontSize="9" fontWeight="600">
+                    <text y="24" textAnchor="middle" fill="#cbd5e1" fontSize="8" fontWeight="600">
                       {ward.name.split(' ')[0]}
                     </text>
                   </g>
@@ -256,9 +309,9 @@ export default function TaskList() {
           </div>
 
           <div className="route-view__tip">
-            <span className="route-view__tip-icon">💡</span>
+            <Sparkles size={16} className="text-sky" />
             <span>
-              <strong>Demand-Driven Dispatch:</strong> Eliminates static rounds. Porters navigate straight to full/high-SLA bins, cutting hospital internal transit times by up to 28%.
+              <strong>Demand-Driven Dispatch:</strong> Directs collectors along the shortest, sterile corridor route to urgent 48h SLA bins, minimizing infectious waste transit exposure.
             </span>
           </div>
         </div>
