@@ -193,6 +193,14 @@
 }
 
 @media (max-width: 520px) {
+  .tab-bar {
+    padding: 0.35rem 0.5rem;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 12px));
+  }
+  .tab-bar__inner {
+    padding: 0.3rem 0.45rem;
+    border-radius: 20px;
+  }
   .tab-bar__role-station {
     display: none;
   }
@@ -200,9 +208,19 @@
     display: none;
   }
   .tab-bar__tab {
-    padding: 0.5rem 0.65rem;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 12px;
   }
   .tab-bar__label {
     display: none;
+  }
+  .tab-bar__role-btn {
+    padding: 0.45rem 0.65rem;
+    min-height: 40px;
+  }
+  .tab-bar__role-name {
+    font-size: 0.72rem;
   }
 }

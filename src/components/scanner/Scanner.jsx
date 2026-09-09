@@ -230,7 +230,7 @@ export default function Scanner() {
       </div>
 
       {/* Tactical Camera HUD Viewfinder */}
-      <div className="scanner__camera-area">
+      <div className={`scanner__camera-area ${scanState === 'result' ? 'scanner__camera-area--shrunk' : ''}`}>
         <CameraView videoRef={videoRef} canvasRef={canvasRef} />
 
         {/* Tactical Reticle Overlay (Sci-Fi Crosshair Corners) */}
@@ -254,7 +254,7 @@ export default function Scanner() {
             <div className="scanner__target-details">
               <span className="scanner__target-name">{liveTracked.itemLabel}</span>
               <span className="scanner__target-metric">
-                {Math.round(liveTracked.confidence * 100)}% • {trackedInfo?.label}
+                {Math.round(liveTracked.confidence * 100)}% • {trackedInfo?.label || 'Route'}
               </span>
             </div>
           </div>
@@ -279,7 +279,7 @@ export default function Scanner() {
           <>
             {/* Quick Benchmark Preset Chips */}
             <div className="scanner__sample-strip">
-              <span className="scanner__sample-title">TEST SAMPLES:</span>
+              <span className="scanner__sample-title">TEST:</span>
               <div className="scanner__sample-scroll">
                 {BENCHMARK_SAMPLES.map((s, idx) => (
                   <button
@@ -307,11 +307,11 @@ export default function Scanner() {
                   </div>
                   <span className="scanner__action-text">
                     {aiMode === 'live' && liveTracked
-                      ? `Classify ${liveTracked.itemLabel} → ${trackedInfo?.label || 'Bin'}`
+                      ? `Classify ${liveTracked.itemLabel.length > 14 ? liveTracked.itemLabel.slice(0, 12) + '…' : liveTracked.itemLabel} → ${trackedInfo?.label || 'Bin'}`
                       : aiMode === 'live'
-                      ? 'Scan Live Object in Camera'
+                      ? 'Scan Object in Camera'
                       : aiMode === 'gemini'
-                      ? 'Analyze via Gemini 2.5 Flash'
+                      ? 'Analyze via Gemini Flash'
                       : 'Trigger AI Scan Cycle'}
                   </span>
                   <div className="scanner__action-trailing-circle">

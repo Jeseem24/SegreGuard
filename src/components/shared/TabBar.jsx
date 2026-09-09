@@ -69,7 +69,7 @@ export default function TabBar({ activeTab, onTabChange }) {
             </div>
             <div className="tab-bar__role-info">
               <span className="tab-bar__role-station">Station</span>
-              <span className="tab-bar__role-name">{role.label}</span>
+              <span className="tab-bar__role-name">{role.id === 'worker' ? 'Nurse' : role.id === 'collector' ? 'Collector' : 'Admin'}</span>
             </div>
             <ArrowLeftRight size={13} className="tab-bar__role-switch-icon" />
           </button>

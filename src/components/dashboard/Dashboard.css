@@ -529,3 +529,26 @@
 .text-emerald { color: #34d399; }
 .text-amber { color: #fbbf24; }
 .text-red { color: #f87171; }
+
+@media (max-width: 640px) {
+  .dash {
+    padding: 1rem 0.85rem 80px 0.85rem;
+  }
+  .metric-card-inner {
+    padding: 0.75rem 0.85rem;
+  }
+  .metric-card__value {
+    font-size: 1.35rem;
+  }
+  .twin-container, .manifest-container {
+    padding: 0.85rem;
+    border-radius: 16px;
+  }
+  .manifest-header {
+    flex-direction: column;
+  }
+  .manifest-export-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
