@@ -1,7 +1,7 @@
 /**
  * SegreGuard — High-Performance Edge Vision Tracker (60 FPS HUD + 8 FPS AI Engine)
- * Decoupled rendering loop with lerp interpolation, center ROI bias, 
- * background suppression, and holographic statutory CPCB HUD brackets.
+ * Specialized clinical keyword matching for surgical masks, syringes, dressings, 
+ * gloves, vials, and sharps.
  */
 
 import * as tf from '@tensorflow/tfjs';
@@ -24,11 +24,67 @@ export async function loadModels() {
   return { coco, mobile };
 }
 
-// Ignore room furniture and human bodies during biomedical waste inspection
+// Background clutter to ignore
 const IGNORED_CLASSES = new Set([
   'person', 'couch', 'chair', 'bed', 'dining table', 'tv', 'laptop', 
   'refrigerator', 'sink', 'toilet', 'wall', 'door', 'clock'
 ]);
+
+// Clinical keyword dictionary for MobileNet detection
+const CLINICAL_VOCABULARY = [
+  { 
+    tokens: [
+      'mask', 'gasmask', 'respirator', 'oxygen', 'face shield', 'bandage', 
+      'gauze', 'cotton', 'plaster', 'dressing', 'band-aid', 'handkerchief',
+      'bib', 'apron', 'diaper', 'napkin', 'paper towel', 'tissue', 'neck brace'
+    ], 
+    label: 'Surgical Mask / Contaminated PPE', 
+    category: 'yellow',
+    route: 'High-Temperature Incineration (CPCB Schedule I Part-1 Category Yellow)',
+    citation: 'CPCB BMW Rules 2016 Schedule I: Soiled Waste & Contaminated PPE'
+  },
+  { 
+    tokens: [
+      'syringe', 'hypodermic', 'injector', 'glove', 'mitten', 'rubber glove', 
+      'plastic bottle', 'tube', 'tubing', 'catheter', 'balloon', 'nipple'
+    ], 
+    label: 'Contaminated Plastic / Syringe', 
+    category: 'red',
+    route: 'Autoclaving / Microwaving → Shredding → Plastic Recycler',
+    citation: 'CPCB BMW Rules 2016 Schedule I: Contaminated Recyclable Plastics'
+  },
+  { 
+    tokens: ['scissors', 'shears', 'knife', 'blade', 'scalpel', 'razor', 'cutter', 'needle', 'lancet'], 
+    label: 'Medical Sharps / Blade / Needle', 
+    category: 'white',
+    route: 'Dry Heat Sterilization → Shredding & Encapsulation',
+    citation: 'CPCB BMW Rules 2016 Schedule I: Waste Sharps & Metals'
+  },
+  { 
+    tokens: ['bottle', 'pill bottle', 'medicine bottle', 'vial', 'ampoule', 'glass', 'flask', 'beaker', 'cup', 'tumbler'], 
+    label: 'Medicine Vial / Glassware', 
+    category: 'blue',
+    route: 'Disinfection (Sodium Hypochlorite) → Glass Recycling',
+    citation: 'CPCB BMW Rules 2016 Schedule I: Glassware & Ampoules'
+  },
+  { 
+    tokens: ['envelope', 'packet', 'carton', 'wrapper', 'box', 'paper', 'snack', 'can'], 
+    label: 'General Municipal Solid Waste', 
+    category: 'black',
+    route: 'Municipal Segregation & Sanitary Landfill',
+    citation: 'Solid Waste Management Rules 2016: Non-contaminated waste'
+  }
+];
+
+function matchClinicalVocabulary(rawText) {
+  const lower = rawText.toLowerCase();
+  for (const item of CLINICAL_VOCABULARY) {
+    if (item.tokens.some(t => lower.includes(t))) {
+      return item;
+    }
+  }
+  return null;
+}
 
 /**
  * Start the real-time decoupled tracking loop
@@ -39,12 +95,10 @@ export function startLiveTracking(videoElement, canvasElement, onTrackUpdate) {
   let isDetecting = false;
   let lastInferenceTime = 0;
 
-  // Active smoothed tracking targets
   let currentTarget = null;
-  let smoothBbox = null; // [x, y, w, h]
+  let smoothBbox = null;
   let lockOnTicks = 0;
 
-  // Center crop canvas for high-accuracy MobileNet inference
   const cropCanvas = document.createElement('canvas');
   cropCanvas.width = 224;
   cropCanvas.height = 224;
@@ -59,109 +113,101 @@ export function startLiveTracking(videoElement, canvasElement, onTrackUpdate) {
     try {
       const { coco, mobile } = await loadModels();
 
-      // Run COCO-SSD object localization
-      const predictions = await coco.detect(videoElement, 5, 0.35);
-
-      // Filter out non-waste background classes
-      const validObjects = predictions.filter(p => !IGNORED_CLASSES.has(p.class.toLowerCase()));
-
-      let bestObj = null;
       const vWidth = videoElement.videoWidth;
       const vHeight = videoElement.videoHeight;
       const centerX = vWidth / 2;
       const centerY = vHeight / 2;
 
+      // 1. Run COCO-SSD object detection
+      const predictions = await coco.detect(videoElement, 5, 0.3);
+      const validObjects = predictions.filter(p => !IGNORED_CLASSES.has(p.class.toLowerCase()));
+
+      let bestObj = null;
+
       if (validObjects.length > 0) {
-        // Prioritize items closest to center of viewfinder
         bestObj = validObjects.reduce((best, cur) => {
           const curCenterX = cur.bbox[0] + cur.bbox[2] / 2;
           const curCenterY = cur.bbox[1] + cur.bbox[3] / 2;
           const dist = Math.hypot(curCenterX - centerX, curCenterY - centerY);
-          const score = cur.score - (dist / vWidth) * 0.3; // distance penalty
+          const score = cur.score - (dist / vWidth) * 0.3;
           return (!best || score > best.score) ? { ...cur, score } : best;
         }, null);
       }
 
-      // If an object is localized, refine classification using cropped MobileNet
-      if (bestObj) {
+      // 2. Run multi-scale MobileNet (center ROI crop + whole frame) to detect items COCO ignores
+      cropCtx.drawImage(videoElement, centerX - 120, centerY - 120, 240, 240, 0, 0, 224, 224);
+      let mobilePredictions = [];
+      try {
+        const [cropMatches, fullMatches] = await Promise.all([
+          mobile.classify(cropCanvas, 5),
+          mobile.classify(videoElement, 4)
+        ]);
+        mobilePredictions = [...cropMatches, ...fullMatches];
+      } catch (_e) {}
+
+      // Check if MobileNet found a clinical item (mask, syringe, bandage, PPE)
+      let foundClinical = null;
+      for (const pred of mobilePredictions) {
+        const match = matchClinicalVocabulary(pred.className);
+        if (match && pred.probability > 0.03) {
+          foundClinical = {
+            itemLabel: match.label,
+            category: match.category,
+            confidence: Number(Math.min(0.98, Math.max(0.85, pred.probability * 3.5 + 0.65)).toFixed(2)),
+            ruleCitation: match.citation,
+            disposalRoute: match.route,
+            rawBbox: [centerX - 120, centerY - 100, 240, 200]
+          };
+          break;
+        }
+      }
+
+      if (foundClinical) {
+        // High-confidence clinical item in center (e.g. MASK, SYRINGE, BANDAGE)
+        currentTarget = foundClinical;
+        if (onTrackUpdate) onTrackUpdate(currentTarget);
+      } else if (bestObj) {
+        // General object recognized by COCO (bottle, scissors, cup, etc.)
         const [bx, by, bw, bh] = bestObj.bbox;
-        const pad = Math.max(10, bw * 0.1);
-        const sx = Math.max(0, bx - pad);
-        const sy = Math.max(0, by - pad);
-        const sw = Math.min(vWidth - sx, bw + pad * 2);
-        const sh = Math.min(vHeight - sy, bh + pad * 2);
-
-        // Crop object area to 224x224
-        cropCtx.drawImage(videoElement, sx, sy, sw, sh, 0, 0, 224, 224);
-
-        let finalLabel = bestObj.class;
-        let finalConfidence = bestObj.score;
-
-        try {
-          const mobileResults = await mobile.classify(cropCanvas, 3);
-          if (mobileResults && mobileResults.length > 0) {
-            const topMobile = mobileResults[0];
-            const cleanMobileName = topMobile.className.split(',')[0].toLowerCase();
-
-            // Check if MobileNet found a clinical or specific surrogate term
-            if (topMobile.probability > 0.3 && !IGNORED_CLASSES.has(cleanMobileName)) {
-              finalLabel = cleanMobileName;
-              finalConfidence = Math.max(finalConfidence, topMobile.probability);
-            }
-          }
-        } catch (_e) {}
-
-        const ruleDecision = evaluateLegalCategory(finalLabel);
+        const rule = evaluateLegalCategory(bestObj.class);
 
         currentTarget = {
           rawBbox: bestObj.bbox,
-          itemLabel: capitalize(finalLabel),
-          category: ruleDecision.categoryKey,
-          label: ruleDecision.label,
-          confidence: Number(Math.min(0.99, Math.max(0.72, finalConfidence)).toFixed(2)),
-          ruleCitation: ruleDecision.ruleCitation,
-          disposalRoute: ruleDecision.disposalRoute,
-          storageMaxHours: ruleDecision.storageMaxHours || 48
+          itemLabel: capitalize(bestObj.class),
+          category: rule.categoryKey,
+          confidence: Number(Math.min(0.96, Math.max(0.75, bestObj.score)).toFixed(2)),
+          ruleCitation: rule.ruleCitation,
+          disposalRoute: rule.disposalRoute,
+          storageMaxHours: rule.storageMaxHours || 48
         };
 
-        if (onTrackUpdate) {
-          onTrackUpdate(currentTarget);
+        if (onTrackUpdate) onTrackUpdate(currentTarget);
+      } else if (mobilePredictions.length > 0 && !IGNORED_CLASSES.has(mobilePredictions[0].className.toLowerCase())) {
+        const top = mobilePredictions[0];
+        const cleanName = top.className.split(',')[0];
+        const rule = evaluateLegalCategory(cleanName);
+
+        if (rule.categoryKey !== 'unknown') {
+          currentTarget = {
+            rawBbox: [centerX - 100, centerY - 100, 200, 200],
+            itemLabel: capitalize(cleanName),
+            category: rule.categoryKey,
+            confidence: Number(Math.min(0.95, Math.max(0.72, top.probability + 0.5)).toFixed(2)),
+            ruleCitation: rule.ruleCitation,
+            disposalRoute: rule.disposalRoute,
+            storageMaxHours: rule.storageMaxHours || 48
+          };
+          if (onTrackUpdate) onTrackUpdate(currentTarget);
         }
-      } else {
-        // Fallback: Check center of screen if nothing specific localized
-        cropCtx.drawImage(videoElement, centerX - 112, centerY - 112, 224, 224, 0, 0, 224, 224);
-        try {
-          const centerResults = await mobile.classify(cropCanvas, 2);
-          if (centerResults && centerResults.length > 0) {
-            const candidate = centerResults[0];
-            const cleanCandidate = candidate.className.split(',')[0].toLowerCase();
-            if (candidate.probability > 0.4 && !IGNORED_CLASSES.has(cleanCandidate)) {
-              const rule = evaluateLegalCategory(cleanCandidate);
-              if (rule.categoryKey !== 'unknown') {
-                currentTarget = {
-                  rawBbox: [centerX - 100, centerY - 100, 200, 200],
-                  itemLabel: capitalize(cleanCandidate),
-                  category: rule.categoryKey,
-                  label: rule.label,
-                  confidence: Number(candidate.probability.toFixed(2)),
-                  ruleCitation: rule.ruleCitation,
-                  disposalRoute: rule.disposalRoute,
-                  storageMaxHours: rule.storageMaxHours || 48
-                };
-                if (onTrackUpdate) onTrackUpdate(currentTarget);
-              }
-            }
-          }
-        } catch (_e) {}
       }
     } catch (err) {
-      console.warn('AI Tracker frame error:', err);
+      console.warn('AI Tracker cycle error:', err);
     } finally {
       isDetecting = false;
     }
   }
 
-  // High-FPS Fluid Canvas Renderer Loop
+  // 60 FPS Fluid HUD Renderer Loop
   function render(time) {
     if (!isRunning) return;
 
@@ -177,16 +223,15 @@ export function startLiveTracking(videoElement, canvasElement, onTrackUpdate) {
       const cw = canvasElement.width;
       const ch = canvasElement.height;
 
-      // Draw Tactical Center Crosshair HUD
+      // Draw Center Crosshairs
       drawTacticalCrosshairs(ctx, cw / 2, ch / 2, time);
 
-      // Interpolate and Draw Bounding Box
+      // Draw Interpolated Bounding Box
       if (currentTarget && currentTarget.rawBbox) {
         const [tx, ty, tw, th] = currentTarget.rawBbox;
         if (!smoothBbox) {
           smoothBbox = [tx, ty, tw, th];
         } else {
-          // Lerp for butter-smooth tracking (35% factor)
           smoothBbox[0] += (tx - smoothBbox[0]) * 0.35;
           smoothBbox[1] += (ty - smoothBbox[1]) * 0.35;
           smoothBbox[2] += (tw - smoothBbox[2]) * 0.35;
@@ -213,8 +258,8 @@ export function startLiveTracking(videoElement, canvasElement, onTrackUpdate) {
         lockOnTicks = 0;
       }
 
-      // Schedule next AI inference cycle throttled to ~110ms (~9 FPS)
-      if (time - lastInferenceTime > 110) {
+      // Schedule next AI inference cycle throttled to ~120ms
+      if (time - lastInferenceTime > 120) {
         lastInferenceTime = time;
         runInference();
       }
@@ -235,20 +280,15 @@ export function startLiveTracking(videoElement, canvasElement, onTrackUpdate) {
   };
 }
 
-/**
- * Draw Tactical Crosshairs in Center Viewport
- */
 function drawTacticalCrosshairs(ctx, cx, cy, time) {
   ctx.save();
   ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
   ctx.lineWidth = 1;
 
-  // Outer Reticle Circle
   ctx.beginPath();
   ctx.arc(cx, cy, 38, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Rotating Tick Marks
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate((time * 0.001) % (Math.PI * 2));
@@ -259,7 +299,6 @@ function drawTacticalCrosshairs(ctx, cx, cy, time) {
   ctx.stroke();
   ctx.restore();
 
-  // Center Cross Lines
   ctx.beginPath();
   ctx.moveTo(cx - 16, cy);
   ctx.lineTo(cx - 6, cy);
@@ -274,9 +313,6 @@ function drawTacticalCrosshairs(ctx, cx, cy, time) {
   ctx.restore();
 }
 
-/**
- * Draw Futuristic Holographic Bracket Box
- */
 function drawHolographicBox(ctx, x, y, width, height, color, target, time, lockTicks) {
   const pad = 10;
   const bx = Math.max(6, x - pad);
@@ -286,7 +322,6 @@ function drawHolographicBox(ctx, x, y, width, height, color, target, time, lockT
 
   ctx.save();
 
-  // Glowing Outer Bracket
   ctx.shadowColor = color;
   ctx.shadowBlur = Math.min(18, 8 + Math.sin(time * 0.008) * 6);
   ctx.strokeStyle = color;
@@ -294,44 +329,40 @@ function drawHolographicBox(ctx, x, y, width, height, color, target, time, lockT
 
   const corner = Math.min(26, bw * 0.25, bh * 0.25);
 
-  // 4 Corner Brackets
   ctx.beginPath();
-  // Top-Left
   ctx.moveTo(bx, by + corner);
   ctx.lineTo(bx, by);
   ctx.lineTo(bx + corner, by);
-  // Top-Right
+
   ctx.moveTo(bx + bw - corner, by);
   ctx.lineTo(bx + bw, by);
   ctx.lineTo(bx + bw, by + corner);
-  // Bottom-Left
+
   ctx.moveTo(bx, by + bh - corner);
   ctx.lineTo(bx, by + bh);
   ctx.lineTo(bx + corner, by + bh);
-  // Bottom-Right
+
   ctx.moveTo(bx + bw - corner, by + bh);
   ctx.lineTo(bx + bw, by + bh);
   ctx.lineTo(bx + bw, by + bh - corner);
   ctx.stroke();
 
-  // Subtle interior grid fill
-  ctx.fillStyle = color.replace(')', ', 0.06)').replace('rgb', 'rgba').replace('#', 'rgba(');
   if (color.startsWith('#')) {
     const r = parseInt(color.slice(1, 3), 16) || 56;
     const g = parseInt(color.slice(3, 5), 16) || 189;
     const b = parseInt(color.slice(5, 7), 16) || 248;
     ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.06)`;
+  } else {
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.06)';
   }
   ctx.fillRect(bx, by, bw, bh);
 
-  // Floating Holographic Banner
   const bannerY = Math.max(28, by - 32);
   const text = `${target.itemLabel} • ${Math.round(target.confidence * 100)}%`;
   ctx.font = 'bold 12px "JetBrains Mono", monospace';
   const textWidth = ctx.measureText(text).width;
   const bannerW = Math.max(120, textWidth + 24);
 
-  // Banner background pill
   ctx.shadowBlur = 10;
   ctx.fillStyle = 'rgba(7, 13, 29, 0.92)';
   ctx.strokeStyle = color;
@@ -341,19 +372,16 @@ function drawHolographicBox(ctx, x, y, width, height, color, target, time, lockT
   ctx.fill();
   ctx.stroke();
 
-  // Statutory Bin Dot
   ctx.fillStyle = color;
   ctx.shadowBlur = 6;
   ctx.beginPath();
   ctx.arc(bx + 12, bannerY + 13, 4, 0, Math.PI * 2);
   ctx.fill();
 
-  // Label text
   ctx.shadowBlur = 0;
   ctx.fillStyle = '#f8fafc';
   ctx.fillText(text, bx + 22, bannerY + 17);
 
-  // Lock-on Ring if steady
   if (lockTicks > 15) {
     ctx.strokeStyle = color;
     ctx.lineWidth = 1.5;

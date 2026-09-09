@@ -5,17 +5,19 @@ import {
   Clock, 
   Edit3, 
   Truck, 
-  ShieldAlert, 
-  ShieldCheck, 
-  CheckCircle2, 
-  AlertTriangle,
-  Volume2
+  Volume2,
+  Sparkles,
+  Camera,
+  Cpu,
+  CheckCircle2,
+  FileText
 } from 'lucide-react';
 
 /**
  * ResultPanel:
  * Agency-grade Double-Bezel result card with statutory CPCB color aura,
- * high-contrast typography, and Lucide SVG icons.
+ * real sensor snapshot thumbnail, clinical compliance reasoning,
+ * high-contrast typography, and audio voice guidance.
  */
 export default function ResultPanel({ result, onCorrect, onRequestPickup }) {
   if (!result) return null;
@@ -26,7 +28,7 @@ export default function ResultPanel({ result, onCorrect, onRequestPickup }) {
 
   const playVoice = () => {
     if ('speechSynthesis' in window) {
-      const text = `${result.itemLabel}. Dispose in ${info.label}. ${info.disposalRoute}`;
+      const text = `${result.itemLabel}. Classified as ${info.label}. ${info.disposalRoute}`;
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 1.0;
       window.speechSynthesis.speak(utterance);
@@ -50,6 +52,12 @@ export default function ResultPanel({ result, onCorrect, onRequestPickup }) {
           </div>
 
           <div className="result-card__badges">
+            {result.engine && (
+              <span className="result-card__engine-chip">
+                <Sparkles size={11} className="result-card__engine-icon" />
+                <span>{result.engine}</span>
+              </span>
+            )}
             <button 
               className="result-card__voice-btn" 
               onClick={playVoice}
@@ -64,42 +72,66 @@ export default function ResultPanel({ result, onCorrect, onRequestPickup }) {
           </div>
         </div>
 
-        {/* Item Identification & Disposal Method */}
-        <div className="result-card__main">
-          <div className="result-card__title-row">
-            <h3 className="result-card__item-title">{result.itemLabel}</h3>
-            <span className="result-card__confidence-pill">
-              {Math.round(result.confidence * 100)}% Match
-            </span>
-          </div>
+        {/* Snapshot Evidence Thumbnail + Item Identity */}
+        <div className="result-card__evidence-grid">
+          {result.snapshotUrl && (
+            <div className="result-card__snapshot-wrap" style={{ borderColor: `${info.color}55` }}>
+              <img 
+                src={result.snapshotUrl} 
+                alt="Captured Waste Evidence" 
+                className="result-card__snapshot-img"
+              />
+              <div className="result-card__snapshot-badge">
+                <Camera size={10} />
+                <span>LIVE EVIDENCE</span>
+              </div>
+            </div>
+          )}
 
-          <p className="result-card__disposal">
-            <span className="result-card__disposal-label">Treatment Protocol:</span> {info.disposalRoute}
-          </p>
-
-          {/* Statutory Citation Box */}
-          <div className="result-card__citation">
-            <Scale size={15} className="result-card__citation-icon" style={{ color: info.color }} />
-            <div className="result-card__citation-content">
-              <span className="result-card__citation-title">CPCB BMW Rules 2016 (Schedule I)</span>
-              <span className="result-card__citation-text">
-                {result.ruleCitation || info.ruleCitation || 'Statutory segregation protocol enforced at source.'}
+          <div className="result-card__identity-block">
+            <div className="result-card__title-row">
+              <h3 className="result-card__item-title">{result.itemLabel}</h3>
+              <span className="result-card__confidence-pill">
+                {Math.round(result.confidence * 100)}% Match
               </span>
             </div>
-          </div>
 
-          {/* Confidence Track */}
-          <div className="result-card__meter">
-            <div className="result-card__meter-bar">
-              <div 
-                className="result-card__meter-fill" 
-                style={{ 
-                  width: `${Math.round(result.confidence * 100)}%`,
-                  background: info.color,
-                  boxShadow: `0 0 10px ${info.color}`
-                }}
-              />
-            </div>
+            <p className="result-card__disposal">
+              <span className="result-card__disposal-label">Treatment Route:</span> {info.disposalRoute}
+            </p>
+          </div>
+        </div>
+
+        {/* Clinical Reasoning Callout */}
+        {result.reasoning && (
+          <div className="result-card__reasoning">
+            <FileText size={14} className="result-card__reasoning-icon" style={{ color: info.color }} />
+            <p className="result-card__reasoning-text">{result.reasoning}</p>
+          </div>
+        )}
+
+        {/* Statutory Citation Box */}
+        <div className="result-card__citation">
+          <Scale size={15} className="result-card__citation-icon" style={{ color: info.color }} />
+          <div className="result-card__citation-content">
+            <span className="result-card__citation-title">CPCB Bio-Medical Waste Rules 2016 (Schedule I)</span>
+            <span className="result-card__citation-text">
+              {result.ruleCitation || info.ruleCitation || 'Statutory segregation protocol enforced at source.'}
+            </span>
+          </div>
+        </div>
+
+        {/* Confidence Progress Meter */}
+        <div className="result-card__meter">
+          <div className="result-card__meter-bar">
+            <div 
+              className="result-card__meter-fill" 
+              style={{ 
+                width: `${Math.round(result.confidence * 100)}%`,
+                background: info.color,
+                boxShadow: `0 0 10px ${info.color}`
+              }}
+            />
           </div>
         </div>
 

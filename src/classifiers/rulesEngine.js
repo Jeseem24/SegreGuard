@@ -90,9 +90,11 @@ export function evaluateLegalCategory(rawClass) {
     return { ...CPCB_SCHEDULE_I_RULES.sharps_waste, categoryKey: 'white', label: 'White Container (Sharps)' };
   }
 
-  // 2. YELLOW BIN: Anatomical, Soiled dressings, Cotton, Gauze, Blood-stained PPE
+  // 2. YELLOW BIN: Anatomical, Soiled dressings, Cotton, Gauze, Blood-stained PPE, Masks
   if (
     normalized.includes('mask') || 
+    normalized.includes('respirator') ||
+    normalized.includes('face shield') ||
     normalized.includes('cotton') || 
     normalized.includes('bandage') || 
     normalized.includes('gauze') || 
@@ -100,7 +102,10 @@ export function evaluateLegalCategory(rawClass) {
     normalized.includes('dressing') || 
     normalized.includes('anatomical') || 
     normalized.includes('blood') ||
-    normalized.includes('plaster')
+    normalized.includes('plaster') ||
+    normalized.includes('handkerchief') ||
+    normalized.includes('bib') ||
+    normalized.includes('apron')
   ) {
     return { ...CPCB_SCHEDULE_I_RULES.soiled_waste, categoryKey: 'yellow', label: 'Yellow Bin (Infectious)' };
   }
