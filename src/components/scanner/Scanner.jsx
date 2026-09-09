@@ -5,18 +5,22 @@ import ManualPicker from './ManualPicker.jsx';
 import { classify as classifyMock } from '../../classifiers/mockClassifier.js';
 import { startLiveTracking, loadModels } from '../../classifiers/liveTracker.js';
 import { classifyWithGemini, DEFAULT_GEMINI_API_KEY } from '../../classifiers/geminiClassifier.js';
+import { classifyWithEdgePrimary, loadEdgeModel } from '../../classifiers/tfjsClassifier.js';
 import { evaluateLegalCategory } from '../../classifiers/rulesEngine.js';
 import { CONFIDENCE_THRESHOLD, CATEGORY_INFO } from '../../classifiers/classifierInterface.js';
 import { useRole } from '../../context/RoleContext.jsx';
 import { addWasteEvent, requestPickup } from '../../lib/firestoreOps.js';
 import { 
   Video, 
+  Camera, 
   Sparkles, 
-  Cpu, 
+  ShieldCheck, 
   Scan, 
   CheckCircle2, 
   RotateCcw,
-  ArrowRight
+  ArrowRight,
+  Layers,
+  Cpu
 } from 'lucide-react';
 import './Scanner.css';
 
@@ -35,22 +39,23 @@ export default function Scanner() {
   const canvasRef = useRef(null);
   const stopTrackingRef = useRef(null);
 
+  // Clean Dual Camera Modes: 'live' (Real-time stabilized HUD) or 'capture' (Snapshot with Dual-Layer AI)
+  const [camMode, setCamMode] = useState('live'); 
   const [scanState, setScanState] = useState('idle'); // idle | scanning | result
   const [result, setResult] = useState(null);
   const [showPicker, setShowPicker] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
-  const [aiMode, setAiMode] = useState('live'); // 'live' | 'gemini' | 'mock'
   const [liveTracked, setLiveTracked] = useState(null);
-  const [trackingActive, setTrackingActive] = useState(false);
   const [isDispatched, setIsDispatched] = useState(false);
+  const [analysisStatus, setAnalysisStatus] = useState('');
   const [analysisStep, setAnalysisStep] = useState(1);
   const { role } = useRole();
 
-  // Start / Stop Real-Time Live Bounding Box Tracking loop
+  // Start / Stop Real-Time Live Bounding Box Tracking loop (only in Live Cam mode)
   useEffect(() => {
     let active = true;
 
-    if (aiMode === 'live' && scanState === 'idle') {
+    if (camMode === 'live' && scanState === 'idle') {
       loadModels().then(() => {
         if (!active) return;
         if (videoRef.current && canvasRef.current) {
@@ -60,7 +65,6 @@ export default function Scanner() {
             (trackedItem) => {
               if (active) {
                 setLiveTracked(trackedItem);
-                setTrackingActive(true);
               }
             }
           );
@@ -71,7 +75,11 @@ export default function Scanner() {
         stopTrackingRef.current();
         stopTrackingRef.current = null;
       }
-      setTrackingActive(false);
+      setLiveTracked(null);
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
     }
 
     return () => {
@@ -81,7 +89,7 @@ export default function Scanner() {
         stopTrackingRef.current = null;
       }
     };
-  }, [aiMode, scanState]);
+  }, [camMode, scanState]);
 
   // Audio synthesis chirp & mobile haptic tap
   const triggerChirp = (type = 'scan') => {
@@ -118,11 +126,16 @@ export default function Scanner() {
     } catch (_e) {}
   };
 
-  // Commit scan result
+  /**
+   * Commit scan with Hierarchical Dual-Layer Perception:
+   * Layer 1 (Primary): On-device Edge Neuro-Symbolic Engine (MobileNetV2 + CPCB Rules)
+   * Layer 2 (Secondary): Google Gemini 2.5 Flash Multimodal Vision (Auto-escalation for low confidence)
+   */
   const handleCommitScan = useCallback(async (customResult = null) => {
     if (scanState === 'scanning') return;
     setScanState('scanning');
     setAnalysisStep(1);
+    setAnalysisStatus('Layer 1: Executing On-Device Neural Edge Perception…');
     setIsDispatched(false);
     triggerChirp('scan');
 
@@ -134,64 +147,79 @@ export default function Scanner() {
 
       // 1. Capture exact snapshot frame from video feed for visual proof
       let snapshotUrl = null;
+      let snapCanvas = null;
       if (videoRef.current && videoRef.current.videoWidth > 0) {
         try {
-          const snapCanvas = document.createElement('canvas');
+          snapCanvas = document.createElement('canvas');
           snapCanvas.width = Math.min(640, videoRef.current.videoWidth);
           snapCanvas.height = Math.round((snapCanvas.width * videoRef.current.videoHeight) / videoRef.current.videoWidth);
           const sCtx = snapCanvas.getContext('2d');
           sCtx.drawImage(videoRef.current, 0, 0, snapCanvas.width, snapCanvas.height);
-          snapshotUrl = snapCanvas.toDataURL('image/jpeg', 0.82);
+          snapshotUrl = snapCanvas.toDataURL('image/jpeg', 0.85);
         } catch (_snapErr) {}
       }
 
       if (!classification) {
-        if (aiMode === 'gemini') {
-          // Explicit Google Gemini 2.5 Flash Cloud Vision
-          if (videoRef.current && videoRef.current.readyState >= 2) {
-            try {
-              classification = await classifyWithGemini(videoRef.current, DEFAULT_GEMINI_API_KEY);
-            } catch (geminiErr) {
-              console.warn('Gemini Cloud Vision error, falling back to local edge AI:', geminiErr);
-            }
-          }
-          if (!classification && liveTracked) {
-            classification = { 
-              ...liveTracked,
-              engine: 'Edge TensorVision (MobileNetV2)',
-              reasoning: liveTracked.reasoning || `Identified via edge perception: ${liveTracked.itemLabel}.`
-            };
-          }
-        } else if (aiMode === 'mock') {
-          // Explicit Auto-Loop / Sequential Simulation
-          const mockRes = await classifyMock(videoRef.current || null);
+        if (camMode === 'live' && liveTracked) {
+          // LIVE CAM MODE: Use stabilized edge target
           classification = {
-            ...mockRes,
-            engine: 'Statutory Perception Engine',
-            reasoning: 'Sequential compliance cycle conforming to CPCB 2016 Schedule I.'
+            ...liveTracked,
+            engine: 'Primary Layer: Edge Neuro-Symbolic (MobileNetV2)',
+            reasoning: liveTracked.reasoning || `Continuously tracked and verified by on-device edge perception: ${liveTracked.itemLabel}.`
           };
         } else {
-          // 'live' 30 FPS Edge Mode: Prefer locked on-device target
-          if (liveTracked) {
-            classification = { 
-              ...liveTracked,
-              engine: 'Edge TensorVision (MobileNetV2)',
-              reasoning: liveTracked.reasoning || `Identified by on-device neural edge perception: ${liveTracked.itemLabel}.`
+          // CAPTURE CAM MODE (or Live without lock): Run Hierarchical Dual-Layer Perception
+          let primaryResult = null;
+          try {
+            if (snapCanvas || videoRef.current) {
+              primaryResult = await classifyWithEdgePrimary(snapCanvas || videoRef.current);
+            }
+          } catch (edgeErr) {
+            console.warn('Primary Edge Layer error:', edgeErr);
+          }
+
+          // Check if Primary Layer is confident (>= 0.75 confidence and known category)
+          if (primaryResult && primaryResult.isConfident) {
+            classification = {
+              ...primaryResult,
+              engine: 'Primary Layer: Edge Neuro-Symbolic Engine'
             };
-          } else if (videoRef.current && videoRef.current.readyState >= 2) {
-            try {
-              classification = await classifyWithGemini(videoRef.current, DEFAULT_GEMINI_API_KEY);
-            } catch (_err) {}
+          } else {
+            // Escalation to Secondary Layer (Google Gemini 2.5 Flash Multimodal Vision)
+            setAnalysisStatus('Layer 1 Ambiguous → Escalating to Layer 2: Gemini 2.5 Flash Cloud Vision…');
+            setAnalysisStep(2);
+
+            let secondaryResult = null;
+            if (DEFAULT_GEMINI_API_KEY && videoRef.current && videoRef.current.readyState >= 2) {
+              try {
+                secondaryResult = await classifyWithGemini(videoRef.current, DEFAULT_GEMINI_API_KEY);
+              } catch (geminiErr) {
+                console.warn('Secondary Gemini Layer error, falling back to edge decision:', geminiErr);
+              }
+            }
+
+            if (secondaryResult) {
+              classification = {
+                ...secondaryResult,
+                engine: 'Secondary Layer: Google Gemini 2.5 Flash Vision'
+              };
+            } else if (primaryResult) {
+              // Graceful fallback to primary result
+              classification = {
+                ...primaryResult,
+                engine: 'Primary Layer: Edge Neuro-Symbolic Engine'
+              };
+            }
           }
         }
 
-        // Final fallback if still null
+        // Tertiary fallback if both layers were unavailable
         if (!classification) {
           const mockRes = await classifyMock(videoRef.current || null);
           classification = {
             ...mockRes,
             engine: 'Statutory Perception Engine',
-            reasoning: 'Rule-based compliance categorization under CPCB 2016 Schedule I.'
+            reasoning: 'Sequential compliance cycle conforming to CPCB 2016 Schedule I.'
           };
         }
       }
@@ -234,7 +262,7 @@ export default function Scanner() {
       console.error('Scan commit failed:', err);
       setScanState('idle');
     }
-  }, [scanState, role, aiMode, liveTracked]);
+  }, [scanState, role, camMode, liveTracked]);
 
   const handleBenchmarkClick = (sample) => {
     const mockRes = {
@@ -311,40 +339,29 @@ export default function Scanner() {
 
   return (
     <div className="scanner">
-      {/* Sci-Fi Tactical Header Bar */}
+      {/* Sleek Dual Camera Mode Switcher (Live Cam vs Capture Cam) */}
       <div className="scanner__mode-bar">
-        <div className="scanner__telemetry-chip">
-          <span className="scanner__telemetry-pulse"></span>
-          <span className="scanner__telemetry-text">VISION AI CLUSTER</span>
-        </div>
+        <div className="scanner__cam-toggle-dock">
+          <button
+            type="button"
+            className={`scanner__cam-tab ${camMode === 'live' ? 'scanner__cam-tab--active' : ''}`}
+            onClick={() => { setCamMode('live'); handleNewScan(); }}
+            title="Continuous real-time edge tracking HUD"
+          >
+            <Video size={14} />
+            <span>Live Stream Cam</span>
+            <span className="scanner__cam-tab-chip">Continuous</span>
+          </button>
 
-        <div className="scanner__mode-toggle-dock">
           <button
             type="button"
-            className={`scanner__mode-tab ${aiMode === 'live' ? 'scanner__mode-tab--active' : ''}`}
-            onClick={() => setAiMode('live')}
-            title="Real-time 30 FPS Edge Object Tracking"
+            className={`scanner__cam-tab ${camMode === 'capture' ? 'scanner__cam-tab--active' : ''}`}
+            onClick={() => { setCamMode('capture'); handleNewScan(); }}
+            title="Snapshot capture with Dual-Layer Edge + Gemini Escalation"
           >
-            <Video size={13} />
-            <span>30 FPS Edge</span>
-          </button>
-          <button
-            type="button"
-            className={`scanner__mode-tab ${aiMode === 'gemini' ? 'scanner__mode-tab--active' : ''}`}
-            onClick={() => setAiMode('gemini')}
-            title="Google Gemini 2.5 Flash Multimodal Vision"
-          >
-            <Sparkles size={13} />
-            <span>Gemini 2.5 Flash</span>
-          </button>
-          <button
-            type="button"
-            className={`scanner__mode-tab ${aiMode === 'mock' ? 'scanner__mode-tab--active' : ''}`}
-            onClick={() => setAiMode('mock')}
-            title="Deterministic Schedule I Sequence"
-          >
-            <Cpu size={13} />
-            <span>Auto Loop</span>
+            <Camera size={14} />
+            <span>Capture Cam</span>
+            <span className="scanner__cam-tab-chip scanner__cam-tab-chip--gemini">Dual-Layer AI</span>
           </button>
         </div>
       </div>
@@ -362,8 +379,8 @@ export default function Scanner() {
           <div className="hud-scanner-laser" />
         </div>
 
-        {/* Live Detected Target Floating HUD */}
-        {aiMode === 'live' && scanState === 'idle' && liveTracked && (
+        {/* Live Detected Target Floating HUD (Live Cam Only) */}
+        {camMode === 'live' && scanState === 'idle' && liveTracked && (
           <div
             className="scanner__live-target-badge"
             style={{
@@ -380,6 +397,15 @@ export default function Scanner() {
           </div>
         )}
 
+        {/* Capture Mode Framing Guide Overlay */}
+        {camMode === 'capture' && scanState === 'idle' && (
+          <div className="scanner__capture-guide" style={{ pointerEvents: 'none' }}>
+            <div className="scanner__capture-reticle">
+              <span className="scanner__capture-text">FRAME ITEM IN VIEW</span>
+            </div>
+          </div>
+        )}
+
         {/* High-Tech Tactical Scanning & Analysis Overlay */}
         {scanState === 'scanning' && (
           <div className="scanner__analyzing-overlay">
@@ -388,21 +414,21 @@ export default function Scanner() {
             
             <div className="scanner__analyzing-status">
               <h4 className="scanner__analyzing-headline">
-                {aiMode === 'gemini' ? 'Gemini 2.5 Flash Cloud Vision' : 'Edge Neuro-Symbolic Engine'}
+                {analysisStatus || 'Analyzing Clinical Waste Morphology…'}
               </h4>
 
               <div className="scanner__analysis-steps">
                 <div className={`analysis-step-pill ${analysisStep >= 1 ? 'analysis-step-pill--active' : ''}`}>
-                  <span className="analysis-step-dot" />
-                  <span>1. Object Morphology & Contours</span>
+                  <ShieldCheck size={12} className="text-sky" />
+                  <span>1. Primary Layer: On-Device Edge AI</span>
                 </div>
                 <div className={`analysis-step-pill ${analysisStep >= 2 ? 'analysis-step-pill--active' : ''}`}>
-                  <span className="analysis-step-dot" />
-                  <span>2. CPCB BMW 2016 Schedule I Rules</span>
+                  <Sparkles size={12} className="text-amber" />
+                  <span>2. Secondary Layer: Gemini 2.5 Flash Vision</span>
                 </div>
                 <div className={`analysis-step-pill ${analysisStep >= 3 ? 'analysis-step-pill--active' : ''}`}>
-                  <span className="analysis-step-dot" />
-                  <span>3. 48-Hour SLA Custody Protocol</span>
+                  <CheckCircle2 size={12} className="text-emerald" />
+                  <span>3. CPCB 2016 Schedule I Verification</span>
                 </div>
               </div>
             </div>
@@ -442,16 +468,14 @@ export default function Scanner() {
               <div className="scanner__action-btn-shell">
                 <div className="scanner__action-btn-core">
                   <div className="scanner__action-icon-pill">
-                    <Scan size={18} strokeWidth={2.5} />
+                    {camMode === 'capture' ? <Camera size={18} strokeWidth={2.5} /> : <Scan size={18} strokeWidth={2.5} />}
                   </div>
                   <span className="scanner__action-text">
-                    {aiMode === 'live' && liveTracked
-                      ? `Classify ${liveTracked.itemLabel.length > 14 ? liveTracked.itemLabel.slice(0, 12) + '…' : liveTracked.itemLabel} → ${trackedInfo?.label || 'Bin'}`
-                      : aiMode === 'live'
-                      ? 'Scan Object in Camera'
-                      : aiMode === 'gemini'
-                      ? 'Analyze via Gemini Flash'
-                      : 'Trigger AI Scan Cycle'}
+                    {camMode === 'capture'
+                      ? 'Capture & Analyze Item'
+                      : liveTracked
+                      ? `Commit: ${liveTracked.itemLabel.length > 14 ? liveTracked.itemLabel.slice(0, 12) + '…' : liveTracked.itemLabel} → ${trackedInfo?.label || 'Bin'}`
+                      : 'Scan Object in Live Cam'}
                   </span>
                   <div className="scanner__action-trailing-circle">
                     <ArrowRight size={14} />

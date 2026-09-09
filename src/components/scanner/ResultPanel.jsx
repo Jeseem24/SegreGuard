@@ -9,7 +9,8 @@ import {
   Sparkles,
   Camera,
   CheckCircle2,
-  FileText
+  FileText,
+  ShieldCheck
 } from 'lucide-react';
 
 /**
@@ -52,8 +53,12 @@ export default function ResultPanel({ result, onCorrect, onRequestPickup, isDisp
 
           <div className="result-card__badges">
             {result.engine && (
-              <span className="result-card__engine-chip">
-                <Sparkles size={11} className="result-card__engine-icon" />
+              <span className={`result-card__engine-chip ${result.engine.includes('Secondary') ? 'result-card__engine-chip--secondary' : 'result-card__engine-chip--primary'}`}>
+                {result.engine.includes('Secondary') ? (
+                  <Sparkles size={11} className="result-card__engine-icon text-amber" />
+                ) : (
+                  <ShieldCheck size={11} className="result-card__engine-icon text-sky" />
+                )}
                 <span>{result.engine}</span>
               </span>
             )}

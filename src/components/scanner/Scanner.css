@@ -50,36 +50,106 @@
   letter-spacing: 0.08em;
 }
 
-.scanner__mode-toggle-dock {
-  display: flex;
-  gap: 0.25rem;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 0.2rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+.scanner__cam-toggle-dock {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  width: 100%;
+  background: rgba(15, 23, 42, 0.7);
+  padding: 0.3rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.scanner__mode-tab {
+.scanner__cam-tab {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.65rem;
-  border-radius: 8px;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 10px;
   color: #94a3b8;
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 700;
   background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.scanner__mode-tab:hover {
+.scanner__cam-tab:hover {
   color: #f1f5f9;
 }
 
-.scanner__mode-tab--active {
+.scanner__cam-tab--active {
   background: rgba(56, 189, 248, 0.15);
   color: #38bdf8;
-  box-shadow: inset 0 1px 1px rgba(56, 189, 248, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 2px 12px rgba(56, 189, 248, 0.2);
+}
+
+.scanner__cam-tab-chip {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
+.scanner__cam-tab--active .scanner__cam-tab-chip {
+  background: rgba(56, 189, 248, 0.25);
+  color: #7dd3fc;
+}
+
+.scanner__cam-tab-chip--gemini {
+  color: #fbbf24;
+}
+
+.scanner__cam-tab--active .scanner__cam-tab-chip--gemini {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+
+/* ── Capture Cam Framing Guide ── */
+.scanner__capture-guide {
+  position: absolute;
+  inset: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 7;
+}
+
+.scanner__capture-reticle {
+  width: 100%;
+  height: 100%;
+  max-width: 280px;
+  max-height: 240px;
+  border: 1.5px dashed rgba(56, 189, 248, 0.4);
+  border-radius: 20px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0.75rem;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.1);
+}
+
+.scanner__capture-text {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #7dd3fc;
+  background: rgba(7, 13, 29, 0.85);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
 }
 
 /* ── Camera HUD Viewfinder Area ── */
@@ -544,6 +614,18 @@
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
   letter-spacing: 0.02em;
+}
+
+.result-card__engine-chip--primary {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.result-card__engine-chip--secondary {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.4);
 }
 
 .result-card__voice-btn {
