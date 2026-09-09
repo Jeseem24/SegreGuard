@@ -415,6 +415,19 @@
 /* ── Main Scan Action Button (Double-Bezel) ── */
 .scanner__action-btn {
   width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  display: block;
+  touch-action: manipulation;
+  text-align: inherit;
+}
+
+.scanner__action-btn:active .scanner__action-btn-shell {
+  transform: scale(0.985);
 }
 
 .scanner__action-btn-shell {
@@ -422,6 +435,7 @@
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.4), rgba(59, 130, 246, 0.2));
   border-radius: 18px;
   box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.3);
+  transition: transform 0.15s ease-out;
 }
 
 .scanner__action-btn-core {
@@ -762,6 +776,28 @@
 .result-btn--dispatch:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
+}
+
+.result-btn--dispatched {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  cursor: default !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4) !important;
+  transform: none !important;
+}
+
+.result-card__dispatched-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 10px;
+  color: #34d399;
+  font-size: 0.78rem;
+  font-weight: 600;
+  animation: slideUp 0.2s ease-out;
 }
 
 .scanner__reset-scan-btn {

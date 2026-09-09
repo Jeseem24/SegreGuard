@@ -431,6 +431,21 @@
   transform: translateY(-1px);
 }
 
+.dash__toast-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 10px;
+  color: #34d399;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  animation: slideUp 0.2s ease-out;
+}
+
 .manifest-table-wrapper {
   overflow-x: auto;
   border-radius: 12px;

@@ -88,6 +88,11 @@
   font-weight: 600;
   color: #94a3b8;
   border-radius: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -446,4 +451,126 @@
 .tasks__loading-text {
   font-size: 0.84rem;
   color: #94a3b8;
+}
+
+/* ── Interactive Route Station Card ── */
+.route-station-card {
+  background: #0b1329;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 16px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  animation: slideUp 0.2s ease-out;
+}
+
+.route-station-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.route-station-card__title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.route-station-card__sub {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  margin-top: 0.15rem;
+}
+
+.route-station-card__close {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  cursor: pointer;
+  outline: none;
+}
+
+.route-station-card__close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.route-station-card__tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.route-station-task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+}
+
+.route-station-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.route-station-task-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.route-station-task-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: block;
+}
+
+.route-station-task-reason {
+  font-size: 0.7rem;
+  color: #64748b;
+  display: block;
+}
+
+.route-station-collect-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+
+.route-station-collect-btn:hover {
+  background: #10b981;
+  color: #050811;
+}
+
+.route-station-card__clear {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 10px;
+  font-size: 0.78rem;
+  color: #cbd5e1;
 }

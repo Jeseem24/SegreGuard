@@ -15,12 +15,9 @@ import {
   Truck, 
   Navigation, 
   Sparkles, 
-  TrendingDown, 
-  Layers, 
   PlusCircle,
   Building2,
-  AlertTriangle,
-  ArrowRight
+  X
 } from 'lucide-react';
 import './Tasks.css';
 
@@ -88,6 +85,7 @@ export default function TaskList() {
       {/* View Mode Toggle */}
       <div className="tasks__view-toggle">
         <button
+          type="button"
           className={`tasks__toggle-btn ${viewMode === 'list' ? 'tasks__toggle-btn--active' : ''}`}
           onClick={() => setViewMode('list')}
         >
@@ -95,6 +93,7 @@ export default function TaskList() {
           <span>Active Queue ({tasks.length})</span>
         </button>
         <button
+          type="button"
           className={`tasks__toggle-btn ${viewMode === 'route' ? 'tasks__toggle-btn--active' : ''}`}
           onClick={() => setViewMode('route')}
         >
@@ -116,6 +115,7 @@ export default function TaskList() {
                 No active bio-medical waste bags are awaiting transit or breaching the 48-hour statutory threshold.
               </p>
               <button 
+                type="button"
                 className="tasks__mock-btn"
                 onClick={handleCreateMockPickup}
               >
@@ -184,6 +184,7 @@ export default function TaskList() {
 
                       {/* Handover Action */}
                       <button
+                        type="button"
                         className="task-card__collect-btn"
                         onClick={() => handleCollect(task.id)}
                         disabled={collecting === task.id}
@@ -279,6 +280,7 @@ export default function TaskList() {
                 const hasTask = tasks.some(t => t.wardId === wId);
                 const x = ward.coords.x * 3.6;
                 const y = ward.coords.y * 2.8;
+                const isSelected = selectedPin && selectedPin.id === wId;
 
                 return (
                   <g
@@ -289,17 +291,17 @@ export default function TaskList() {
                     style={{ cursor: 'pointer' }}
                   >
                     <circle
-                      r={hasTask ? 15 : 10}
+                      r={hasTask ? 16 : 11}
                       fill={hasTask ? '#ef4444' : '#1e293b'}
-                      stroke={hasTask ? '#fee2e2' : '#475569'}
-                      strokeWidth={hasTask ? 2 : 1}
-                      filter={hasTask ? 'url(#glow)' : undefined}
+                      stroke={isSelected ? '#38bdf8' : hasTask ? '#fee2e2' : '#475569'}
+                      strokeWidth={isSelected ? 3 : hasTask ? 2 : 1}
+                      filter={hasTask || isSelected ? 'url(#glow)' : undefined}
                       className={hasTask ? 'pin-pulse' : ''}
                     />
                     <text y="3.5" textAnchor="middle" fill={hasTask ? '#ffffff' : '#94a3b8'} fontSize="9" fontWeight="700" fontFamily="JetBrains Mono">
                       {wId.replace('ward-', 'W')}
                     </text>
-                    <text y="24" textAnchor="middle" fill="#cbd5e1" fontSize="8" fontWeight="600">
+                    <text y="24" textAnchor="middle" fill={isSelected ? '#38bdf8' : '#cbd5e1'} fontSize="8" fontWeight="600">
                       {ward.name.split(' ')[0]}
                     </text>
                   </g>
@@ -308,10 +310,65 @@ export default function TaskList() {
             </svg>
           </div>
 
+          {/* Interactive Selected Station Popover */}
+          {selectedPin && (
+            <div className="route-station-card">
+              <div className="route-station-card__header">
+                <div>
+                  <h4 className="route-station-card__title">{selectedPin.name}</h4>
+                  <p className="route-station-card__sub">{selectedPin.floor} • Node {selectedPin.id.toUpperCase()}</p>
+                </div>
+                <button 
+                  type="button"
+                  className="route-station-card__close"
+                  onClick={() => setSelectedPin(null)}
+                  title="Close station details"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="route-station-card__body">
+                {tasks.filter(t => t.wardId === selectedPin.id).length > 0 ? (
+                  <div className="route-station-card__tasks">
+                    {tasks.filter(t => t.wardId === selectedPin.id).map(t => {
+                      const cInfo = CATEGORY_INFO[t.category] || CATEGORY_INFO.unknown;
+                      return (
+                        <div key={t.id} className="route-station-task-row">
+                          <div className="route-station-task-meta">
+                            <span className="route-station-task-dot" style={{ background: cInfo.color }} />
+                            <div>
+                              <span className="route-station-task-label" style={{ color: cInfo.color }}>{cInfo.label}</span>
+                              <span className="route-station-task-reason">{t.reason || 'Pending porter transit'}</span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            className="route-station-collect-btn"
+                            onClick={() => handleCollect(t.id)}
+                            disabled={collecting === t.id}
+                          >
+                            <CheckCircle2 size={13} />
+                            <span>Collect</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="route-station-card__clear">
+                    <CheckCircle2 size={16} className="text-emerald" />
+                    <span>All bins in this ward are currently below 80% threshold.</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="route-view__tip">
             <Sparkles size={16} className="text-sky" />
             <span>
-              <strong>Demand-Driven Dispatch:</strong> Directs collectors along the shortest, sterile corridor route to urgent 48h SLA bins, minimizing infectious waste transit exposure.
+              <strong>Demand-Driven Dispatch:</strong> Tap any station pin on the floorplan to inspect live ward logistics and immediately acknowledge collections.
             </span>
           </div>
         </div>

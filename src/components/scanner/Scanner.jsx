@@ -5,6 +5,7 @@ import ManualPicker from './ManualPicker.jsx';
 import { classify as classifyMock } from '../../classifiers/mockClassifier.js';
 import { startLiveTracking, loadModels } from '../../classifiers/liveTracker.js';
 import { classifyWithGemini, DEFAULT_GEMINI_API_KEY } from '../../classifiers/geminiClassifier.js';
+import { evaluateLegalCategory } from '../../classifiers/rulesEngine.js';
 import { CONFIDENCE_THRESHOLD, CATEGORY_INFO } from '../../classifiers/classifierInterface.js';
 import { useRole } from '../../context/RoleContext.jsx';
 import { addWasteEvent, requestPickup } from '../../lib/firestoreOps.js';
@@ -14,9 +15,6 @@ import {
   Cpu, 
   Scan, 
   CheckCircle2, 
-  Zap, 
-  Layers, 
-  ShieldCheck, 
   RotateCcw,
   ArrowRight
 } from 'lucide-react';
@@ -44,6 +42,8 @@ export default function Scanner() {
   const [aiMode, setAiMode] = useState('live'); // 'live' | 'gemini' | 'mock'
   const [liveTracked, setLiveTracked] = useState(null);
   const [trackingActive, setTrackingActive] = useState(false);
+  const [isDispatched, setIsDispatched] = useState(false);
+  const [analysisStep, setAnalysisStep] = useState(1);
   const { role } = useRole();
 
   // Start / Stop Real-Time Live Bounding Box Tracking loop
@@ -83,8 +83,6 @@ export default function Scanner() {
     };
   }, [aiMode, scanState]);
 
-  const [analysisStep, setAnalysisStep] = useState(1);
-
   // Audio synthesis chirp & mobile haptic tap
   const triggerChirp = (type = 'scan') => {
     try {
@@ -120,11 +118,12 @@ export default function Scanner() {
     } catch (_e) {}
   };
 
-  // Commit scan result (from live tracked item or sample click)
+  // Commit scan result
   const handleCommitScan = useCallback(async (customResult = null) => {
     if (scanState === 'scanning') return;
     setScanState('scanning');
     setAnalysisStep(1);
+    setIsDispatched(false);
     triggerChirp('scan');
 
     const step2Timer = setTimeout(() => setAnalysisStep(2), 350);
@@ -147,25 +146,46 @@ export default function Scanner() {
       }
 
       if (!classification) {
-        // 2. Primary: If Gemini API key is configured and camera is active, run Google Gemini 2.5 Flash
-        if (DEFAULT_GEMINI_API_KEY && videoRef.current && videoRef.current.readyState >= 2) {
-          try {
-            classification = await classifyWithGemini(videoRef.current, DEFAULT_GEMINI_API_KEY);
-          } catch (geminiErr) {
-            console.warn('Gemini Cloud Vision error, falling back to local edge AI:', geminiErr);
+        if (aiMode === 'gemini') {
+          // Explicit Google Gemini 2.5 Flash Cloud Vision
+          if (videoRef.current && videoRef.current.readyState >= 2) {
+            try {
+              classification = await classifyWithGemini(videoRef.current, DEFAULT_GEMINI_API_KEY);
+            } catch (geminiErr) {
+              console.warn('Gemini Cloud Vision error, falling back to local edge AI:', geminiErr);
+            }
+          }
+          if (!classification && liveTracked) {
+            classification = { 
+              ...liveTracked,
+              engine: 'Edge TensorVision (MobileNetV2)',
+              reasoning: liveTracked.reasoning || `Identified via edge perception: ${liveTracked.itemLabel}.`
+            };
+          }
+        } else if (aiMode === 'mock') {
+          // Explicit Auto-Loop / Sequential Simulation
+          const mockRes = await classifyMock(videoRef.current || null);
+          classification = {
+            ...mockRes,
+            engine: 'Statutory Perception Engine',
+            reasoning: 'Sequential compliance cycle conforming to CPCB 2016 Schedule I.'
+          };
+        } else {
+          // 'live' 30 FPS Edge Mode: Prefer locked on-device target
+          if (liveTracked) {
+            classification = { 
+              ...liveTracked,
+              engine: 'Edge TensorVision (MobileNetV2)',
+              reasoning: liveTracked.reasoning || `Identified by on-device neural edge perception: ${liveTracked.itemLabel}.`
+            };
+          } else if (videoRef.current && videoRef.current.readyState >= 2) {
+            try {
+              classification = await classifyWithGemini(videoRef.current, DEFAULT_GEMINI_API_KEY);
+            } catch (_err) {}
           }
         }
 
-        // 3. Secondary: Fall back to local live-tracked item
-        if (!classification && liveTracked) {
-          classification = { 
-            ...liveTracked,
-            engine: 'Edge TensorVision (MobileNetV2)',
-            reasoning: liveTracked.reasoning || `Detected by on-device neural edge perception: ${liveTracked.itemLabel}.`
-          };
-        }
-
-        // 4. Tertiary: Fall back to mock deterministic sequence
+        // Final fallback if still null
         if (!classification) {
           const mockRes = await classifyMock(videoRef.current || null);
           classification = {
@@ -200,8 +220,8 @@ export default function Scanner() {
         confidence: classification.confidence,
         wasEdited: false,
         originalCategory: null,
-        wardId: role.wardId || 'ward-1',
-        userId: role.userId,
+        wardId: role?.wardId || 'ward-1',
+        userId: role?.userId || 'staff-1',
         ruleCitation: classification.ruleCitation || 'CPCB 2016 Schedule I',
         createdAt: new Date().toISOString()
       };
@@ -231,39 +251,48 @@ export default function Scanner() {
   }, []);
 
   const handleManualSelect = useCallback(async (category) => {
-    if (!result) return;
+    const baseItem = result?.itemLabel || liveTracked?.itemLabel || 'Manually Classified Item';
+    const rule = evaluateLegalCategory(category);
 
     const correctedResult = {
-      ...result,
-      originalCategory: result.category,
+      ...(result || {}),
+      itemLabel: baseItem,
+      originalCategory: result?.category || 'unknown',
       category: category,
       wasEdited: true,
-      confidence: 1.0
+      confidence: 1.0,
+      ruleCitation: rule.ruleCitation,
+      disposalRoute: rule.disposalRoute,
+      engine: 'Manual Clinical Verification',
+      reasoning: `Manual override applied conforming to CPCB 2016 Schedule I: ${rule.label}.`
     };
 
     setResult(correctedResult);
     setShowPicker(false);
+    setScanState('result');
+    setIsDispatched(false);
 
     const eventData = {
-      itemLabel: result.itemLabel,
+      itemLabel: correctedResult.itemLabel,
       category: category,
-      confidence: result.confidence,
+      confidence: 1.0,
       wasEdited: true,
-      originalCategory: result.category,
-      wardId: role.wardId || 'ward-1',
-      userId: role.userId,
-      ruleCitation: result.ruleCitation,
+      originalCategory: result?.category || 'unknown',
+      wardId: role?.wardId || 'ward-1',
+      userId: role?.userId || 'staff-1',
+      ruleCitation: rule.ruleCitation,
       createdAt: new Date().toISOString()
     };
 
     await addWasteEvent(eventData);
-  }, [result, role]);
+  }, [result, role, liveTracked]);
 
   const handleRequestPickup = useCallback(async () => {
     if (!result) return;
     try {
-      await requestPickup(result.category, role.wardId || 'ward-1', `Emergency porter request for ${result.itemLabel}`);
-      alert(`Collection Porter Dispatched for ${result.itemLabel} (${result.category.toUpperCase()} Bin)!`);
+      await requestPickup(result.category, role?.wardId || 'ward-1', `Emergency porter request for ${result.itemLabel}`);
+      setIsDispatched(true);
+      triggerChirp('success');
     } catch (err) {
       console.error('Pickup request failed:', err);
     }
@@ -275,6 +304,7 @@ export default function Scanner() {
     setShowPicker(false);
     setLastSaved(null);
     setLiveTracked(null);
+    setIsDispatched(false);
   }, []);
 
   const trackedInfo = liveTracked ? (CATEGORY_INFO[liveTracked.category] || CATEGORY_INFO.unknown) : null;
@@ -290,6 +320,7 @@ export default function Scanner() {
 
         <div className="scanner__mode-toggle-dock">
           <button
+            type="button"
             className={`scanner__mode-tab ${aiMode === 'live' ? 'scanner__mode-tab--active' : ''}`}
             onClick={() => setAiMode('live')}
             title="Real-time 30 FPS Edge Object Tracking"
@@ -298,6 +329,7 @@ export default function Scanner() {
             <span>30 FPS Edge</span>
           </button>
           <button
+            type="button"
             className={`scanner__mode-tab ${aiMode === 'gemini' ? 'scanner__mode-tab--active' : ''}`}
             onClick={() => setAiMode('gemini')}
             title="Google Gemini 2.5 Flash Multimodal Vision"
@@ -306,6 +338,7 @@ export default function Scanner() {
             <span>Gemini 2.5 Flash</span>
           </button>
           <button
+            type="button"
             className={`scanner__mode-tab ${aiMode === 'mock' ? 'scanner__mode-tab--active' : ''}`}
             onClick={() => setAiMode('mock')}
             title="Deterministic Schedule I Sequence"
@@ -321,7 +354,7 @@ export default function Scanner() {
         <CameraView videoRef={videoRef} canvasRef={canvasRef} />
 
         {/* Tactical Reticle Overlay (Sci-Fi Crosshair Corners) */}
-        <div className="scanner__hud-reticles" pointer-events="none">
+        <div className="scanner__hud-reticles" style={{ pointerEvents: 'none' }}>
           <div className="hud-corner hud-corner--tl" />
           <div className="hud-corner hud-corner--tr" />
           <div className="hud-corner hud-corner--bl" />
@@ -388,6 +421,7 @@ export default function Scanner() {
                 {BENCHMARK_SAMPLES.map((s, idx) => (
                   <button
                     key={idx}
+                    type="button"
                     className="scanner__sample-chip"
                     onClick={() => handleBenchmarkClick(s)}
                     style={{ '--chip-color': CATEGORY_INFO[s.category]?.color || '#38bdf8' }}
@@ -401,6 +435,7 @@ export default function Scanner() {
 
             {/* Main Action Scan Button */}
             <button 
+              type="button"
               className="scanner__action-btn"
               onClick={() => handleCommitScan()}
             >
@@ -433,8 +468,13 @@ export default function Scanner() {
               result={result}
               onCorrect={handleCorrect}
               onRequestPickup={handleRequestPickup}
+              isDispatched={isDispatched}
             />
-            <button className="scanner__reset-scan-btn" onClick={handleNewScan}>
+            <button 
+              type="button"
+              className="scanner__reset-scan-btn" 
+              onClick={handleNewScan}
+            >
               <RotateCcw size={15} />
               <span>Scan Next Item</span>
             </button>

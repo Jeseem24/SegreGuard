@@ -78,6 +78,8 @@ export default function Dashboard() {
   const currentWardData = HOSPITAL_WARDS[selectedWard] || HOSPITAL_WARDS['ward-1'];
   const currentWardBins = bins.filter(b => b.wardId === selectedWard);
 
+  const [exportedToast, setExportedToast] = useState(false);
+
   const handleExportCSV = () => {
     const headers = ['Manifest ID', 'Ward', 'Waste Description', 'CPCB Category', 'Rule Citation', 'Logged At', 'Confidence'];
     const rows = events.map(e => [
@@ -98,6 +100,9 @@ export default function Dashboard() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    setExportedToast(true);
+    setTimeout(() => setExportedToast(false), 3500);
   };
 
   if (loading) {
@@ -336,11 +341,18 @@ export default function Dashboard() {
                 Central Pollution Control Board Bio-Medical Waste Management Rules 2016
               </p>
             </div>
-            <button className="manifest-export-btn" onClick={handleExportCSV}>
+            <button type="button" className="manifest-export-btn" onClick={handleExportCSV}>
               <Download size={14} />
               <span>Export CSV Manifest</span>
             </button>
           </div>
+
+          {exportedToast && (
+            <div className="dash__toast-banner">
+              <CheckCircle2 size={15} className="text-emerald" />
+              <span>CPCB Form IV Manifest exported successfully ({events.length} records).</span>
+            </div>
+          )}
 
           <div className="manifest-table-wrapper">
             <table className="manifest-table">

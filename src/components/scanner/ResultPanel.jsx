@@ -8,7 +8,6 @@ import {
   Volume2,
   Sparkles,
   Camera,
-  Cpu,
   CheckCircle2,
   FileText
 } from 'lucide-react';
@@ -17,9 +16,9 @@ import {
  * ResultPanel:
  * Agency-grade Double-Bezel result card with statutory CPCB color aura,
  * real sensor snapshot thumbnail, clinical compliance reasoning,
- * high-contrast typography, and audio voice guidance.
+ * high-contrast typography, dispatch status feedback, and audio voice guidance.
  */
-export default function ResultPanel({ result, onCorrect, onRequestPickup }) {
+export default function ResultPanel({ result, onCorrect, onRequestPickup, isDispatched }) {
   if (!result) return null;
 
   const isLowConfidence = result.confidence < CONFIDENCE_THRESHOLD;
@@ -62,6 +61,7 @@ export default function ResultPanel({ result, onCorrect, onRequestPickup }) {
               className="result-card__voice-btn" 
               onClick={playVoice}
               title="Play Statutory Audio Guidance"
+              type="button"
             >
               <Volume2 size={14} />
             </button>
@@ -138,6 +138,7 @@ export default function ResultPanel({ result, onCorrect, onRequestPickup }) {
         {/* Action Buttons */}
         <div className="result-card__actions">
           <button 
+            type="button"
             className="result-btn result-btn--edit" 
             onClick={onCorrect}
           >
@@ -147,15 +148,37 @@ export default function ResultPanel({ result, onCorrect, onRequestPickup }) {
 
           {!isLowConfidence && (
             <button 
-              className="result-btn result-btn--dispatch" 
+              type="button"
+              className={`result-btn result-btn--dispatch ${isDispatched ? 'result-btn--dispatched' : ''}`} 
               onClick={onRequestPickup}
-              style={{ background: info.color, color: category === 'white' ? '#050811' : '#ffffff' }}
+              disabled={isDispatched}
+              style={{ 
+                background: isDispatched ? '#10b981' : info.color, 
+                color: category === 'white' && !isDispatched ? '#050811' : '#ffffff' 
+              }}
             >
-              <Truck size={15} />
-              <span>Dispatch Porter</span>
+              {isDispatched ? (
+                <>
+                  <CheckCircle2 size={15} />
+                  <span>Porter Dispatched ✓</span>
+                </>
+              ) : (
+                <>
+                  <Truck size={15} />
+                  <span>Dispatch Porter</span>
+                </>
+              )}
             </button>
           )}
         </div>
+
+        {/* Dispatch Confirmation Banner */}
+        {isDispatched && (
+          <div className="result-card__dispatched-banner">
+            <CheckCircle2 size={14} className="text-emerald" />
+            <span>Logistics porter dispatched to Ward for {info.label} pickup.</span>
+          </div>
+        )}
       </div>
     </div>
   );
