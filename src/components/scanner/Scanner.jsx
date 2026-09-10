@@ -9,7 +9,12 @@ import { classifyWithEdgePrimary, loadEdgeModel } from '../../classifiers/tfjsCl
 import { evaluateLegalCategory } from '../../classifiers/rulesEngine.js';
 import { CONFIDENCE_THRESHOLD, CATEGORY_INFO } from '../../classifiers/classifierInterface.js';
 import { useRole } from '../../context/RoleContext.jsx';
-import { addWasteEvent, requestPickup } from '../../lib/firestoreOps.js';
+import { 
+  addWasteEvent, 
+  requestPickupFromNurse, 
+  subscribeToHospitalRequests,
+  HOSPITALS 
+} from '../../lib/firestoreOps.js';
 import { 
   Video, 
   Camera, 
@@ -20,7 +25,10 @@ import {
   RotateCcw,
   ArrowRight,
   Layers,
-  Cpu
+  Cpu,
+  Building2,
+  Truck,
+  Send
 } from 'lucide-react';
 import './Scanner.css';
 
@@ -43,13 +51,30 @@ export default function Scanner() {
   const [camMode, setCamMode] = useState('live'); 
   const [scanState, setScanState] = useState('idle'); // idle | scanning | result
   const [result, setResult] = useState(null);
+  const [isAdded, setIsAdded] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
-  const [lastSaved, setLastSaved] = useState(null);
   const [liveTracked, setLiveTracked] = useState(null);
-  const [isDispatched, setIsDispatched] = useState(false);
   const [analysisStatus, setAnalysisStatus] = useState('');
   const [analysisStep, setAnalysisStep] = useState(1);
+  const [nurseRequestFeedback, setNurseRequestFeedback] = useState(null);
+  const [activeRequests, setActiveRequests] = useState([]);
   const { role } = useRole();
+
+  const currentHospital = HOSPITALS['hosp-apex'];
+  const currentWardId = role?.wardId || 'ward-1';
+  const currentWard = currentHospital.wards[currentWardId] || currentHospital.wards['ward-1'];
+
+  // Subscribe to hospital pickup requests to show live status of nurse requests
+  useEffect(() => {
+    const unsub = subscribeToHospitalRequests('hosp-apex', (reqs) => {
+      setActiveRequests(reqs || []);
+    });
+    return unsub;
+  }, []);
+
+  const wardPendingRequest = activeRequests.find(r => 
+    r.wardId === currentWardId && (r.status === 'nurse_pending' || r.status === 'logistics_pending' || r.status === 'accepted')
+  );
 
   // Start / Stop Real-Time Live Bounding Box Tracking loop (only in Live Cam mode)
   useEffect(() => {
@@ -127,16 +152,14 @@ export default function Scanner() {
   };
 
   /**
-   * Commit scan with Hierarchical Dual-Layer Perception:
-   * Layer 1 (Primary): On-device Edge Neuro-Symbolic Engine (MobileNetV2 + CPCB Rules)
-   * Layer 2 (Secondary): Google Gemini 2.5 Flash Multimodal Vision (Auto-escalation for low confidence)
+   * Commit scan with Hierarchical Dual-Layer Perception
    */
   const handleCommitScan = useCallback(async (customResult = null) => {
     if (scanState === 'scanning') return;
     setScanState('scanning');
     setAnalysisStep(1);
     setAnalysisStatus('Layer 1: Executing On-Device Neural Edge Perception…');
-    setIsDispatched(false);
+    setIsAdded(false);
     triggerChirp('scan');
 
     const step2Timer = setTimeout(() => setAnalysisStep(2), 350);
@@ -161,14 +184,12 @@ export default function Scanner() {
 
       if (!classification) {
         if (camMode === 'live' && liveTracked) {
-          // LIVE CAM MODE: Use stabilized edge target
           classification = {
             ...liveTracked,
             engine: 'Primary Layer: Edge Neuro-Symbolic (MobileNetV2)',
             reasoning: liveTracked.reasoning || `Continuously tracked and verified by on-device edge perception: ${liveTracked.itemLabel}.`
           };
         } else {
-          // CAPTURE CAM MODE (or Live without lock): Run Hierarchical Dual-Layer Perception
           let primaryResult = null;
           try {
             if (snapCanvas || videoRef.current) {
@@ -178,14 +199,12 @@ export default function Scanner() {
             console.warn('Primary Edge Layer error:', edgeErr);
           }
 
-          // Check if Primary Layer is confident (>= 0.75 confidence and known category)
           if (primaryResult && primaryResult.isConfident) {
             classification = {
               ...primaryResult,
               engine: 'Primary Layer: Edge Neuro-Symbolic Engine'
             };
           } else {
-            // Escalation to Secondary Layer (Google Gemini 2.5 Flash Multimodal Vision)
             setAnalysisStatus('Layer 1 Ambiguous → Escalating to Layer 2: Gemini 2.5 Flash Cloud Vision…');
             setAnalysisStep(2);
 
@@ -204,7 +223,6 @@ export default function Scanner() {
                 engine: 'Secondary Layer: Google Gemini 2.5 Flash Vision'
               };
             } else if (primaryResult) {
-              // Graceful fallback to primary result
               classification = {
                 ...primaryResult,
                 engine: 'Primary Layer: Edge Neuro-Symbolic Engine'
@@ -213,7 +231,6 @@ export default function Scanner() {
           }
         }
 
-        // Tertiary fallback if both layers were unavailable
         if (!classification) {
           const mockRes = await classifyMock(videoRef.current || null);
           classification = {
@@ -224,7 +241,6 @@ export default function Scanner() {
         }
       }
 
-      // Attach visual snapshot to classification
       if (classification && snapshotUrl) {
         classification.snapshotUrl = snapshotUrl;
       }
@@ -236,33 +252,16 @@ export default function Scanner() {
       setResult(classification);
       setScanState('result');
 
-      // Auto-show picker for low confidence
       if (classification.confidence < CONFIDENCE_THRESHOLD) {
         setShowPicker(true);
       }
-
-      // Write to Local Sync & Cloud Firestore
-      const eventData = {
-        itemLabel: classification.itemLabel,
-        category: classification.category,
-        confidence: classification.confidence,
-        wasEdited: false,
-        originalCategory: null,
-        wardId: role?.wardId || 'ward-1',
-        userId: role?.userId || 'staff-1',
-        ruleCitation: classification.ruleCitation || 'CPCB 2016 Schedule I',
-        createdAt: new Date().toISOString()
-      };
-
-      const docId = await addWasteEvent(eventData);
-      setLastSaved(docId);
     } catch (err) {
       clearTimeout(step2Timer);
       clearTimeout(step3Timer);
       console.error('Scan commit failed:', err);
       setScanState('idle');
     }
-  }, [scanState, role, camMode, liveTracked]);
+  }, [scanState, camMode, liveTracked]);
 
   const handleBenchmarkClick = (sample) => {
     const mockRes = {
@@ -278,7 +277,7 @@ export default function Scanner() {
     setShowPicker(true);
   }, []);
 
-  const handleManualSelect = useCallback(async (category) => {
+  const handleManualSelect = useCallback((category) => {
     const baseItem = result?.itemLabel || liveTracked?.itemLabel || 'Manually Classified Item';
     const rule = evaluateLegalCategory(category);
 
@@ -298,54 +297,124 @@ export default function Scanner() {
     setResult(correctedResult);
     setShowPicker(false);
     setScanState('result');
-    setIsDispatched(false);
+    setIsAdded(false);
+  }, [result, liveTracked]);
 
-    const eventData = {
-      itemLabel: correctedResult.itemLabel,
-      category: category,
-      confidence: 1.0,
-      wasEdited: true,
-      originalCategory: result?.category || 'unknown',
-      wardId: role?.wardId || 'ward-1',
-      userId: role?.userId || 'staff-1',
-      ruleCitation: rule.ruleCitation,
-      createdAt: new Date().toISOString()
-    };
-
-    await addWasteEvent(eventData);
-  }, [result, role, liveTracked]);
-
-  const handleRequestPickup = useCallback(async () => {
+  // Action 1: Add to Respective Bin
+  const handleAddToBin = useCallback(async () => {
     if (!result) return;
     try {
-      await requestPickup(result.category, role?.wardId || 'ward-1', `Emergency porter request for ${result.itemLabel}`);
-      setIsDispatched(true);
+      const eventData = {
+        hospitalId: 'hosp-apex',
+        itemLabel: result.itemLabel,
+        category: result.category,
+        confidence: result.confidence,
+        wasEdited: result.wasEdited || false,
+        originalCategory: result.originalCategory || null,
+        wardId: currentWardId,
+        room: currentWard.rooms[1] || 'Room 302 (Ventilator Bay)',
+        userId: role?.userId || 'Nurse Priya',
+        ruleCitation: result.ruleCitation || 'CPCB 2016 Schedule I',
+        createdAt: new Date().toISOString()
+      };
+
+      await addWasteEvent(eventData);
+      setIsAdded(true);
       triggerChirp('success');
     } catch (err) {
-      console.error('Pickup request failed:', err);
+      console.error('Failed to add to bin:', err);
     }
-  }, [result, role]);
+  }, [result, currentWardId, currentWard, role]);
 
-  const handleNewScan = useCallback(() => {
+  // Action 2: Cancel
+  const handleCancelScan = useCallback(() => {
     setScanState('idle');
     setResult(null);
     setShowPicker(false);
-    setLastSaved(null);
-    setLiveTracked(null);
-    setIsDispatched(false);
+    setIsAdded(false);
   }, []);
+
+  // Action 3: Scan Another Item
+  const handleScanAnother = useCallback(() => {
+    setScanState('idle');
+    setResult(null);
+    setShowPicker(false);
+    setIsAdded(false);
+    setLiveTracked(null);
+  }, []);
+
+  // Dispatch Action outside Live Camera: Request Pickup from Admin
+  const handleNurseRequestPickup = async () => {
+    try {
+      await requestPickupFromNurse({
+        hospitalId: 'hosp-apex',
+        wardId: currentWardId,
+        room: currentWard.rooms[1] || 'Room 302',
+        reason: 'Ward bins approaching capacity threshold (>85%)',
+        nurseName: 'Nurse Priya'
+      });
+      setNurseRequestFeedback('Pickup Request Sent to Hospital Admin ✓');
+      triggerChirp('success');
+      setTimeout(() => setNurseRequestFeedback(null), 4000);
+    } catch (err) {
+      console.error('Failed to request pickup:', err);
+    }
+  };
 
   const trackedInfo = liveTracked ? (CATEGORY_INFO[liveTracked.category] || CATEGORY_INFO.unknown) : null;
 
   return (
     <div className="scanner">
+      {/* Ward Station & Admin Pickup Request Bar (Outside Camera Viewfinder) */}
+      <div className="scanner__station-bar">
+        <div className="scanner__station-info">
+          <div className="scanner__station-badge">
+            <Building2 size={13} className="text-sky" />
+            <span>{currentHospital.shortName}</span>
+          </div>
+          <div className="scanner__ward-title">
+            <strong>{currentWard.name}</strong> • {currentWard.floor}
+          </div>
+        </div>
+
+        <div className="scanner__station-actions">
+          {wardPendingRequest ? (
+            <div className="scanner__station-status-pill">
+              <span className="scanner__pulse-dot" />
+              <span>
+                {wardPendingRequest.status === 'nurse_pending' && 'Awaiting Admin Approval'}
+                {wardPendingRequest.status === 'logistics_pending' && 'Dispatched to Logistics'}
+                {wardPendingRequest.status === 'accepted' && 'Transporter En Route'}
+              </span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="scanner__request-admin-btn"
+              onClick={handleNurseRequestPickup}
+              title="Request bio-medical waste collection from Hospital Admin"
+            >
+              <Send size={13} />
+              <span>Request Ward Pickup</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {nurseRequestFeedback && (
+        <div className="scanner__feedback-toast">
+          <CheckCircle2 size={14} className="text-emerald" />
+          <span>{nurseRequestFeedback}</span>
+        </div>
+      )}
+
       {/* Sleek Dual Camera Mode Switcher (Live Cam vs Capture Cam) */}
       <div className="scanner__mode-bar">
         <div className="scanner__cam-toggle-dock">
           <button
             type="button"
             className={`scanner__cam-tab ${camMode === 'live' ? 'scanner__cam-tab--active' : ''}`}
-            onClick={() => { setCamMode('live'); handleNewScan(); }}
+            onClick={() => { setCamMode('live'); handleScanAnother(); }}
             title="Continuous real-time edge tracking HUD"
           >
             <Video size={14} />
@@ -356,7 +425,7 @@ export default function Scanner() {
           <button
             type="button"
             className={`scanner__cam-tab ${camMode === 'capture' ? 'scanner__cam-tab--active' : ''}`}
-            onClick={() => { setCamMode('capture'); handleNewScan(); }}
+            onClick={() => { setCamMode('capture'); handleScanAnother(); }}
             title="Snapshot capture with Dual-Layer Edge + Gemini Escalation"
           >
             <Camera size={14} />
@@ -370,7 +439,7 @@ export default function Scanner() {
       <div className={`scanner__camera-area ${scanState === 'result' ? 'scanner__camera-area--shrunk' : ''}`}>
         <CameraView videoRef={videoRef} canvasRef={canvasRef} />
 
-        {/* Tactical Reticle Overlay (Sci-Fi Crosshair Corners) */}
+        {/* Tactical Reticle Overlay */}
         <div className="scanner__hud-reticles" style={{ pointerEvents: 'none' }}>
           <div className="hud-corner hud-corner--tl" />
           <div className="hud-corner hud-corner--tr" />
@@ -491,17 +560,11 @@ export default function Scanner() {
             <ResultPanel
               result={result}
               onCorrect={handleCorrect}
-              onRequestPickup={handleRequestPickup}
-              isDispatched={isDispatched}
+              onAddToBin={handleAddToBin}
+              onCancel={handleCancelScan}
+              onScanAnother={handleScanAnother}
+              isAdded={isAdded}
             />
-            <button 
-              type="button"
-              className="scanner__reset-scan-btn" 
-              onClick={handleNewScan}
-            >
-              <RotateCcw size={15} />
-              <span>Scan Next Item</span>
-            </button>
           </div>
         )}
 

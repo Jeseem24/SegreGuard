@@ -13,6 +13,108 @@
   padding-bottom: calc(90px + env(safe-area-inset-bottom, 15px));
 }
 
+/* ── Ward Station & Admin Pickup Request Bar (Outside Camera Viewfinder) ── */
+.scanner__station-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: #0a0f1d;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.scanner__station-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.scanner__station-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #38bdf8;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.scanner__ward-title {
+  font-size: 0.78rem;
+  color: #cbd5e1;
+}
+
+.scanner__ward-title strong {
+  color: #f8fafc;
+}
+
+.scanner__station-actions {
+  display: flex;
+  align-items: center;
+}
+
+.scanner__request-admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.scanner__request-admin-btn:hover {
+  background: #38bdf8;
+  color: #050811;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.scanner__station-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.scanner__pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+  animation: pulse-subtle 2s infinite ease-in-out;
+}
+
+.scanner__feedback-toast {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  background: #0b1329;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+  font-size: 0.74rem;
+  font-weight: 600;
+  animation: slideDown 0.2s ease-out;
+}
+
 /* ── Tactical Header Bar ── */
 .scanner__mode-bar {
   display: flex;
@@ -849,26 +951,114 @@
   color: #ffffff;
 }
 
-.result-btn--dispatch {
-  flex: 1;
+/* ── New Camera Result Actions: Add to Bin, Cancel, Scan Another ── */
+.result-card__actions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.result-btn--add-bin {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
   border: none;
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.4);
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.result-btn--dispatch:hover {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
+.result-btn--add-bin:hover:not(:disabled) {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
-.result-btn--dispatched {
+.result-btn--added {
   background: #10b981 !important;
   color: #ffffff !important;
   cursor: default !important;
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4) !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important;
   transform: none !important;
 }
 
-.result-card__dispatched-banner {
+.result-card__sub-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr auto;
+  gap: 0.5rem;
+}
+
+.result-btn--cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  border-radius: 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.result-btn--cancel:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.result-btn--next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  color: #38bdf8;
+  border-radius: 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.result-btn--next:hover {
+  background: rgba(56, 189, 248, 0.22);
+  color: #7dd3fc;
+}
+
+.result-btn--edit-mini {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  border-radius: 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.result-btn--edit-mini:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.result-card__added-banner {
   display: flex;
   align-items: center;
   gap: 0.5rem;

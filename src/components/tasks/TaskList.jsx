@@ -1,116 +1,93 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-  subscribeToBins,
-  subscribeToWasteEvents,
-  subscribeToCollectionTasks,
-  markBinCollected,
-  markWardCollected,
-  calculateSlaStatus,
-  requestPickup,
-  updateBinFill,
-  HOSPITAL_WARDS
+  subscribeToPickupRequests,
+  acceptLogisticsRequest,
+  completeLogisticsRequest,
+  HOSPITALS,
+  CBWTF_FACILITY
 } from '../../lib/firestoreOps.js';
 import { CATEGORY_INFO } from '../../classifiers/classifierInterface.js';
 import { 
-  Boxes, 
-  Map, 
-  Clock, 
-  CheckCircle2, 
   Truck, 
   Navigation, 
-  Sparkles, 
-  PlusCircle,
-  Building2,
-  ChevronDown,
-  ChevronUp,
-  AlertTriangle,
-  RotateCcw,
-  Check,
+  CheckCircle2, 
+  MapPin, 
+  Clock, 
+  AlertTriangle, 
+  Boxes, 
+  Building2, 
+  ArrowRight, 
+  Check, 
+  ShieldCheck, 
+  Sparkles,
   QrCode,
+  Package,
   Layers,
-  ArrowRight
+  ChevronRight,
+  Compass
 } from 'lucide-react';
 import './Tasks.css';
 
 export default function TaskList() {
-  const [bins, setBins] = useState([]);
-  const [events, setEvents] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState('list'); // 'list' | 'route'
-  const [expandedWards, setExpandedWards] = useState({ 'ward-1': true, 'ward-2': true }); // Default first 2 open
-  const [actionSuccess, setActionSuccess] = useState(null); // feedback toast
-  const [selectedMapWard, setSelectedMapWard] = useState(null);
+  const [requests, setRequests] = useState([]);
+  const [viewMode, setViewMode] = useState('incoming'); // 'incoming' | 'routing'
+  const [actionSuccess, setActionSuccess] = useState(null);
+  const [selectedPin, setSelectedPin] = useState(null);
 
   useEffect(() => {
-    const unsubBins = subscribeToBins((data) => setBins(data || []));
-    const unsubEvents = subscribeToWasteEvents(null, (data) => setEvents(data || []));
-    const unsubTasks = subscribeToCollectionTasks((data) => setTasks(data || []));
-
-    return () => {
-      unsubBins();
-      unsubEvents();
-      unsubTasks();
-    };
+    const unsub = subscribeToPickupRequests((data) => {
+      setRequests(data || []);
+    });
+    return unsub;
   }, []);
-
-  const toggleWard = (wardId) => {
-    setExpandedWards(prev => ({
-      ...prev,
-      [wardId]: !prev[wardId]
-    }));
-  };
-
-  const handleConfirmBinPickup = async (binId, wardName, categoryLabel) => {
-    try {
-      await markBinCollected(binId);
-      showFeedback(`Reset ${categoryLabel} in ${wardName} to 0% capacity`);
-    } catch (err) {
-      console.error('Failed to collect bin:', err);
-    }
-  };
-
-  const handleConfirmWardPickup = async (wardId, wardName) => {
-    try {
-      await markWardCollected(wardId);
-      showFeedback(`Collected all 4 bins for ${wardName}`);
-    } catch (err) {
-      console.error('Failed to collect ward:', err);
-    }
-  };
 
   const showFeedback = (msg) => {
     setActionSuccess(msg);
-    setTimeout(() => {
-      setActionSuccess(null);
-    }, 3200);
+    setTimeout(() => setActionSuccess(null), 3500);
   };
 
-  const handleSimulateWardAlert = async () => {
-    const wardKeys = Object.keys(HOSPITAL_WARDS);
-    const randomWard = wardKeys[Math.floor(Math.random() * wardKeys.length)];
-    const categories = ['yellow', 'red', 'white', 'blue'];
-    const randomCat = categories[Math.floor(Math.random() * categories.length)];
-    
-    // Increment fill by 40% to push toward/over capacity
-    await updateBinFill(randomCat, randomWard, 40);
-    showFeedback(`Simulated bio-waste fill surge in ${HOSPITAL_WARDS[randomWard].name}`);
+  const handleAccept = async (requestId, hospitalName) => {
+    try {
+      await acceptLogisticsRequest(requestId, 'CBWTF Fleet Unit #3');
+      showFeedback(`Accepted delivery request for ${hospitalName}! Added to Smart Route.`);
+      setViewMode('routing'); // Automatically take the logistics worker to their smart route
+    } catch (err) {
+      console.error('Failed to accept request:', err);
+    }
   };
 
-  // Group bins and waste events by ward
-  const wardEntries = Object.entries(HOSPITAL_WARDS);
+  const handleComplete = async (requestId, hospitalName) => {
+    try {
+      await completeLogisticsRequest(requestId);
+      showFeedback(`Waste collected from ${hospitalName}. Bins reset & digital custody signed ✓`);
+    } catch (err) {
+      console.error('Failed to complete pickup:', err);
+    }
+  };
 
-  // Quick statistics calculation
-  const totalBins = bins.length;
-  const criticalBins = bins.filter(b => (b.fillPercent || 0) >= 80);
-  const urgentSlaBins = bins.filter(b => {
-    const sla = calculateSlaStatus(b.slaDeadline);
-    return sla.status === 'CRITICAL' || sla.status === 'BREACH';
-  });
+  // Filter requests
+  const incomingRequests = requests.filter(r => r.status === 'logistics_pending');
+  const acceptedRequests = requests.filter(r => r.status === 'accepted');
+  const completedRequests = requests.filter(r => r.status === 'completed');
+
+  // Smart Routing Priority Sequence:
+  // Sort accepted requests by Urgency (CRITICAL > HIGH > NORMAL) then estimated load
+  const sortedRoute = useMemo(() => {
+    const urgencyWeight = { 'CRITICAL': 3, 'HIGH': 2, 'NORMAL': 1 };
+    return [...acceptedRequests].sort((a, b) => {
+      const weightA = urgencyWeight[a.urgency] || 1;
+      const weightB = urgencyWeight[b.urgency] || 1;
+      return weightB - weightA;
+    });
+  }, [acceptedRequests]);
+
+  // Aggregate metrics
+  const totalBags = sortedRoute.reduce((sum, r) => sum + (r.estimatedBags || 0), 0);
+  const totalWeightKg = sortedRoute.reduce((sum, r) => sum + (r.estimatedWeightKg || 0), 0).toFixed(1);
 
   return (
     <div className="tasks">
-      {/* Toast Notification */}
+      {/* Action Toast Feedback */}
       {actionSuccess && (
         <div className="tasks__toast">
           <CheckCircle2 size={16} className="text-emerald" />
@@ -118,366 +95,283 @@ export default function TaskList() {
         </div>
       )}
 
-      {/* Header */}
+      {/* Logistics Header */}
       <div className="tasks__header">
         <div>
           <div className="tasks__title-row">
-            <Truck className="tasks__header-icon" size={20} />
-            <h2 className="tasks__title">Logistics & SLA Dispatch</h2>
+            <Truck className="tasks__header-icon" size={22} />
+            <h2 className="tasks__title">Regional Bio-Waste Transporter</h2>
           </div>
-          <p className="tasks__subtitle">Ward-wise bio-medical custody, fill monitoring & 48h CPCB SLA</p>
+          <p className="tasks__subtitle">
+            Central Bio-Medical Waste Treatment Facility (CBWTF) Fleet Logistics
+          </p>
         </div>
         <div className="tasks__live-badge">
           <span className="tasks__live-dot" />
-          <span>REALTIME</span>
+          <span>FLEET ACTIVE</span>
         </div>
       </div>
 
-      {/* KPI Overview Pills */}
+      {/* Fleet KPI Bar */}
       <div className="tasks__kpi-grid">
         <div className="tasks__kpi-card">
-          <span className="tasks__kpi-label">Active Wards</span>
-          <span className="tasks__kpi-val">{wardEntries.length} Units</span>
-        </div>
-        <div className="tasks__kpi-card">
-          <span className="tasks__kpi-label">High-Fill Bins (≥80%)</span>
-          <span className={`tasks__kpi-val ${criticalBins.length > 0 ? 'text-amber' : 'text-emerald'}`}>
-            {criticalBins.length} Bins
+          <span className="tasks__kpi-label">Incoming Requests</span>
+          <span className={`tasks__kpi-val ${incomingRequests.length > 0 ? 'text-amber' : 'text-emerald'}`}>
+            {incomingRequests.length} Hospitals
           </span>
         </div>
         <div className="tasks__kpi-card">
-          <span className="tasks__kpi-label">CPCB 48h SLA Alerts</span>
-          <span className={`tasks__kpi-val ${urgentSlaBins.length > 0 ? 'text-rose' : 'text-emerald'}`}>
-            {urgentSlaBins.length} Urgent
+          <span className="tasks__kpi-label">Active Route Stops</span>
+          <span className="tasks__kpi-val text-sky">
+            {sortedRoute.length} Assigned
+          </span>
+        </div>
+        <div className="tasks__kpi-card">
+          <span className="tasks__kpi-label">Total Assigned Cargo</span>
+          <span className="tasks__kpi-val">
+            {totalWeightKg} kg ({totalBags} Bags)
           </span>
         </div>
       </div>
 
-      {/* View Mode Toggle */}
+      {/* View Toggle */}
       <div className="tasks__view-toggle">
         <button
           type="button"
-          className={`tasks__toggle-btn ${viewMode === 'list' ? 'tasks__toggle-btn--active' : ''}`}
-          onClick={() => setViewMode('list')}
+          className={`tasks__toggle-btn ${viewMode === 'incoming' ? 'tasks__toggle-btn--active' : ''}`}
+          onClick={() => setViewMode('incoming')}
         >
           <Building2 size={15} />
-          <span>Ward-Wise Dispatch ({wardEntries.length})</span>
+          <span>Incoming Hospital Requests ({incomingRequests.length})</span>
         </button>
         <button
           type="button"
-          className={`tasks__toggle-btn ${viewMode === 'route' ? 'tasks__toggle-btn--active' : ''}`}
-          onClick={() => setViewMode('route')}
+          className={`tasks__toggle-btn ${viewMode === 'routing' ? 'tasks__toggle-btn--active' : ''}`}
+          onClick={() => setViewMode('routing')}
         >
-          <Navigation size={15} />
-          <span>Corridor Transit Map</span>
+          <Compass size={15} />
+          <span>Smart Routing ({sortedRoute.length})</span>
         </button>
       </div>
 
-      {/* VIEW 1: Ward-Wise Station List */}
-      {viewMode === 'list' && (
-        <div className="ward-list">
-          <div className="tasks__toolbar">
-            <span className="tasks__toolbar-info">
-              Showing 4 hospital containment zones. Expand any ward to inspect 4-color bin fill levels.
+      {/* VIEW 1: Incoming Hospital Requests */}
+      {viewMode === 'incoming' && (
+        <div className="incoming-view">
+          <div className="incoming-toolbar">
+            <span className="incoming-toolbar__info">
+              Showing verified disposal requests sent by Hospital Infection Control Admins across the regional health network.
             </span>
-            <button 
-              type="button"
-              className="tasks__quick-sim-btn"
-              onClick={handleSimulateWardAlert}
-            >
-              <PlusCircle size={14} />
-              <span>Simulate Ward Surge</span>
-            </button>
           </div>
 
-          {wardEntries.map(([wardId, ward]) => {
-            const wardBins = bins.filter(b => b.wardId === wardId);
-            const wardEvents = events.filter(e => e.wardId === wardId);
-            const isExpanded = !!expandedWards[wardId];
-
-            // Compute highest fill bin in ward
-            let maxFill = 0;
-            let maxFillCategory = 'yellow';
-            let mostUrgentSla = null;
-
-            wardBins.forEach(b => {
-              if ((b.fillPercent || 0) > maxFill) {
-                maxFill = b.fillPercent || 0;
-                maxFillCategory = b.category;
-              }
-              const sla = calculateSlaStatus(b.slaDeadline);
-              if (!mostUrgentSla || sla.hoursLeft < mostUrgentSla.hoursLeft) {
-                mostUrgentSla = sla;
-              }
-            });
-
-            const maxFillInfo = CATEGORY_INFO[maxFillCategory] || CATEGORY_INFO.unknown;
-            const hasCritical = maxFill >= 80;
-            const hasSlaWarning = mostUrgentSla && (mostUrgentSla.status === 'CRITICAL' || mostUrgentSla.status === 'BREACH');
-
-            return (
-              <div 
-                key={wardId}
-                className={`ward-card ${hasCritical ? 'ward-card--critical' : ''} ${isExpanded ? 'ward-card--expanded' : ''}`}
-              >
-                {/* Ward Header / Master Summary */}
-                <div className="ward-card__header" onClick={() => toggleWard(wardId)}>
-                  <div className="ward-card__title-col">
-                    <div className="ward-card__location-badge">
-                      <Building2 size={14} />
-                      <span>{ward.floor}</span>
-                    </div>
-                    <h3 className="ward-card__name">{ward.name}</h3>
-                    <div className="ward-card__meta-tags">
-                      <span className="ward-card__meta-pill">
-                        <Layers size={12} />
-                        {wardEvents.length} items logged
-                      </span>
-                      <span className="ward-card__meta-pill">
-                        {ward.bedCount} Beds
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="ward-card__status-col">
-                    {/* Highest Fill Level indicator */}
-                    <div className="ward-card__fill-indicator">
-                      <div className="ward-card__fill-gauge">
-                        <div 
-                          className="ward-card__fill-bar" 
-                          style={{ 
-                            width: `${maxFill}%`,
-                            background: maxFill >= 80 ? '#ef4444' : maxFill >= 50 ? '#f59e0b' : '#10b981'
-                          }} 
-                        />
-                      </div>
-                      <div className="ward-card__fill-labels">
-                        <span className="ward-card__fill-text">
-                          Peak: <strong>{maxFill}%</strong> ({maxFillInfo.label.split(' ')[0]})
-                        </span>
-                        {hasCritical && <span className="ward-card__crit-tag">OVERFLOW ALERT</span>}
-                      </div>
-                    </div>
-
-                    {/* SLA status */}
-                    {mostUrgentSla && (
-                      <div className={`ward-card__sla-chip ward-card__sla-chip--${mostUrgentSla.status.toLowerCase()}`}>
-                        <Clock size={11} />
-                        <span>CPCB SLA: {mostUrgentSla.hoursLeft}h left</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <button 
-                    type="button" 
-                    className="ward-card__chevron-btn"
-                    aria-label="Toggle ward details"
-                  >
-                    {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                  </button>
-                </div>
-
-                {/* Ward Level One-Click Confirm Pickup */}
-                <div className="ward-card__quick-actions">
-                  <button
-                    type="button"
-                    className="ward-card__collect-all-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleConfirmWardPickup(wardId, ward.name);
-                    }}
-                  >
-                    <CheckCircle2 size={14} />
-                    <span>Confirm Full Ward Pickup (Reset All 4 Bins)</span>
-                  </button>
-                </div>
-
-                {/* Expanded Details: 4-Bin Matrix & Station Diagnostics */}
-                {isExpanded && (
-                  <div className="ward-card__body">
-                    <div className="ward-card__body-header">
-                      <h4 className="ward-card__body-title">Statutory 4-Color Segregation Bins</h4>
-                      <span className="ward-card__body-sub">CPCB 2016 Rule 4 Standard</span>
-                    </div>
-
-                    <div className="ward-bins-grid">
-                      {['yellow', 'red', 'white', 'blue'].map((cat) => {
-                        const bin = wardBins.find(b => b.category === cat) || {
-                          id: `bin-${cat}-${wardId}`,
-                          fillPercent: 0,
-                          barcodeId: `BIN-${cat.toUpperCase()}-${wardId.toUpperCase()}`,
-                          slaDeadline: Date.now() + 48 * 3600 * 1000
-                        };
-                        const catInfo = CATEGORY_INFO[cat] || CATEGORY_INFO.unknown;
-                        const binEvents = wardEvents.filter(e => e.category === cat);
-                        const binSla = calculateSlaStatus(bin.slaDeadline);
-                        const fill = bin.fillPercent || 0;
-                        const isOver = fill >= 80;
-
-                        return (
-                          <div 
-                            key={cat}
-                            className={`bin-cell ${isOver ? 'bin-cell--critical' : ''}`}
-                            style={{ '--bin-theme': catInfo.color }}
-                          >
-                            <div className="bin-cell__top">
-                              <div className="bin-cell__badge" style={{ background: `${catInfo.color}20`, borderColor: `${catInfo.color}50` }}>
-                                <span className="bin-cell__dot" style={{ background: catInfo.color }} />
-                                <span className="bin-cell__label" style={{ color: catInfo.color }}>{catInfo.label}</span>
-                              </div>
-                              <span className="bin-cell__barcode">
-                                <QrCode size={11} />
-                                {bin.barcodeId}
-                              </span>
-                            </div>
-
-                            {/* Capacity Meter */}
-                            <div className="bin-cell__meter-section">
-                              <div className="bin-cell__meter-header">
-                                <span className="bin-cell__meter-title">Fill Status</span>
-                                <span className="bin-cell__meter-val" style={{ color: fill >= 80 ? '#f87171' : fill >= 50 ? '#fbbf24' : '#34d399' }}>
-                                  {fill}%
-                                </span>
-                              </div>
-                              <div className="bin-cell__meter-track">
-                                <div 
-                                  className="bin-cell__meter-fill" 
-                                  style={{ 
-                                    width: `${fill}%`, 
-                                    background: catInfo.color 
-                                  }} 
-                                />
-                              </div>
-                            </div>
-
-                            {/* Item Count & SLA */}
-                            <div className="bin-cell__meta-row">
-                              <span className="bin-cell__items-count">
-                                <strong>{binEvents.length}</strong> items logged
-                              </span>
-                              <span className={`bin-cell__sla-text bin-cell__sla-text--${binSla.status.toLowerCase()}`}>
-                                <Clock size={11} />
-                                {binSla.text}
-                              </span>
-                            </div>
-
-                            {/* Bin Action */}
-                            <button
-                              type="button"
-                              className="bin-cell__action-btn"
-                              onClick={() => handleConfirmBinPickup(bin.id, ward.name, catInfo.label)}
-                            >
-                              <RotateCcw size={13} />
-                              <span>Confirm Bin Pickup</span>
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+          {incomingRequests.length === 0 ? (
+            <div className="tasks__empty-card">
+              <div className="tasks__empty-icon-wrap">
+                <CheckCircle2 size={36} className="text-emerald" />
               </div>
-            );
-          })}
+              <h3 className="tasks__empty-title">All Hospital Requests Accepted</h3>
+              <p className="tasks__empty-desc">
+                There are no unassigned hospital requests waiting in the regional CBWTF queue. Switch to the Smart Routing tab to execute current stops.
+              </p>
+              <button 
+                type="button" 
+                className="tasks__mock-btn"
+                onClick={() => setViewMode('routing')}
+              >
+                <Navigation size={14} />
+                <span>View Active Smart Route ({sortedRoute.length} Stops)</span>
+              </button>
+            </div>
+          ) : (
+            <div className="incoming-requests-list">
+              {incomingRequests.map((req) => {
+                const isCrit = req.urgency === 'CRITICAL';
+
+                return (
+                  <div 
+                    key={req.id} 
+                    className={`hosp-request-card ${isCrit ? 'hosp-request-card--critical' : ''}`}
+                  >
+                    {/* Header Row */}
+                    <div className="hosp-request-card__header">
+                      <div className="hosp-request-card__identity">
+                        <div className="hosp-request-card__icon">
+                          <Building2 size={18} />
+                        </div>
+                        <div>
+                          <div className="hosp-request-card__title-row">
+                            <h3 className="hosp-request-card__hospital-name">{req.hospitalName}</h3>
+                            <span className={`hosp-urgency-badge hosp-urgency-badge--${req.urgency.toLowerCase()}`}>
+                              {req.urgency}
+                            </span>
+                          </div>
+                          <p className="hosp-request-card__address">
+                            <MapPin size={11} />
+                            {req.hospitalAddress}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="hosp-request-card__cargo-preview">
+                        <span className="hosp-request-card__cargo-val">{req.estimatedWeightKg} kg</span>
+                        <span className="hosp-request-card__cargo-bags">{req.estimatedBags} bags</span>
+                      </div>
+                    </div>
+
+                    {/* Ward & Reason Details */}
+                    <div className="hosp-request-card__body">
+                      <div className="hosp-request-card__location-chip">
+                        <strong>Target Ward / Origin:</strong> {req.wardName} {req.room ? `• ${req.room}` : ''}
+                      </div>
+
+                      <p className="hosp-request-card__reason">
+                        {req.reason}
+                      </p>
+
+                      {/* Critical Bins Pill Breakdown */}
+                      {req.criticalBins && req.criticalBins.length > 0 && (
+                        <div className="hosp-request-card__bins-strip">
+                          <span className="hosp-request-card__bins-label">High-Fill Bins:</span>
+                          <div className="hosp-request-card__bins-pills">
+                            {req.criticalBins.map((bin, bIdx) => {
+                              const cInfo = CATEGORY_INFO[bin.category] || CATEGORY_INFO.unknown;
+                              return (
+                                <div 
+                                  key={bIdx} 
+                                  className="hosp-bin-pill"
+                                  style={{ borderColor: `${cInfo.color}50`, background: `${cInfo.color}15` }}
+                                >
+                                  <span className="hosp-bin-dot" style={{ background: cInfo.color }} />
+                                  <span className="hosp-bin-label" style={{ color: cInfo.color }}>
+                                    {bin.label || cInfo.label.split(' ')[0]}
+                                  </span>
+                                  <span className="hosp-bin-pct">{bin.fillPercent}%</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Bar */}
+                    <div className="hosp-request-card__footer">
+                      <span className="hosp-request-card__requested-by">
+                        Requested by: {req.requestedBy}
+                      </span>
+                      <button
+                        type="button"
+                        className="hosp-accept-btn"
+                        onClick={() => handleAccept(req.id, req.hospitalName)}
+                      >
+                        <Check size={15} strokeWidth={2.5} />
+                        <span>Accept Delivery Request</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
-      {/* VIEW 2: Route Optimization Corridor Map */}
-      {viewMode === 'route' && (
-        <div className="route-view">
-          <div className="route-view__metrics">
-            <div className="route-metric">
-              <span className="route-metric__label">Stations Active</span>
-              <span className="route-metric__value">{wardEntries.length} Wards</span>
+      {/* VIEW 2: Smart Routing & Transit Map */}
+      {viewMode === 'routing' && (
+        <div className="routing-view">
+          {/* Smart Route Narrative Banner */}
+          <div className="route-banner">
+            <div className="route-banner__content">
+              <div className="route-banner__title-row">
+                <Sparkles size={16} className="text-amber" />
+                <h3 className="route-banner__title">AI Smart Routing Optimization</h3>
+              </div>
+              <p className="route-banner__desc">
+                Transporter itinerary prioritized by clinical urgency (CPCB 48h deadline compliance) and optimal metropolitan road corridors.
+              </p>
             </div>
-            <div className="route-metric">
-              <span className="route-metric__label">Urgent Bins</span>
-              <span className="route-metric__value route-metric__value--highlight">
-                {criticalBins.length} Over 80%
-              </span>
-            </div>
-            <div className="route-metric">
-              <span className="route-metric__label">Exposure Risk</span>
-              <span className="route-metric__value text-emerald">Minimal / Compliant</span>
+            <div className="route-banner__eta-badge">
+              <span className="route-banner__eta-label">ESTIMATED CYCLE</span>
+              <span className="route-banner__eta-val">{Math.max(15, sortedRoute.length * 18)} mins</span>
             </div>
           </div>
 
+          {/* Regional City Transit Map (SVG Blueprint) */}
           <div className="route-map-container">
-            <svg className="route-map" viewBox="0 0 400 320">
+            <svg className="route-map" viewBox="0 0 400 300">
               <defs>
-                <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <linearGradient id="multiHospGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#38BDF8" />
+                  <stop offset="50%" stopColor="#A855F7" />
                   <stop offset="100%" stopColor="#10B981" />
                 </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                <filter id="hospGlow">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
                   <feMerge>
-                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="blur" />
                     <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
               </defs>
 
-              {/* Blueprint Grid */}
-              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              {/* City Blueprint Grid */}
+              <pattern id="cityGrid" width="20" height="20" patternUnits="userSpaceOnUse">
                 <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
               </pattern>
-              <rect width="400" height="320" fill="url(#grid)" />
+              <rect width="400" height="300" fill="url(#cityGrid)" />
 
-              {/* Facility Floorplan Boundary */}
-              <rect x="20" y="20" width="360" height="280" rx="16" fill="rgba(15, 23, 42, 0.7)" stroke="rgba(56, 189, 248, 0.25)" strokeWidth="1.5" />
-              <text x="35" y="45" fill="#64748b" fontSize="9" fontWeight="700" letterSpacing="1" fontFamily="JetBrains Mono">
-                FACILITY FLOORPLAN • WARD LOGISTICS MATRIX
+              {/* Metro Corridor Boundary */}
+              <rect x="15" y="15" width="370" height="270" rx="16" fill="rgba(15, 23, 42, 0.7)" stroke="rgba(56, 189, 248, 0.25)" strokeWidth="1.5" />
+              <text x="30" y="38" fill="#64748b" fontSize="8.5" fontWeight="700" letterSpacing="1" fontFamily="JetBrains Mono">
+                METROPOLITAN REGIONAL HEALTHCARE GRID • CBWTF DISPATCH
               </text>
 
-              {/* Transit Path Line */}
+              {/* Animated Optimal Transit Path */}
               <path
-                d="M 55 255 L 125 125 L 285 95 L 270 235 Z"
-                fill="rgba(56, 189, 248, 0.04)"
-                stroke="url(#routeGradient)"
+                d="M 60 240 L 120 115 L 285 75 L 325 200 Z"
+                fill="rgba(56, 189, 248, 0.03)"
+                stroke="url(#multiHospGradient)"
                 strokeWidth="2.5"
                 strokeDasharray="6 4"
                 className="route-path-animated"
               />
 
-              {/* Central Bio-Waste Collection Hub */}
-              <g transform="translate(55, 255)">
-                <circle r="14" fill="#0b1329" stroke="#10b981" strokeWidth="2.5" filter="url(#glow)" />
-                <circle r="5" fill="#10b981" />
-                <text y="24" textAnchor="middle" fill="#34d399" fontSize="8.5" fontWeight="700" fontFamily="JetBrains Mono">
-                  CBWTF Bay
+              {/* Central CBWTF Disposal Facility Hub */}
+              <g transform="translate(60, 240)">
+                <circle r="16" fill="#070d1d" stroke="#10b981" strokeWidth="2.5" filter="url(#hospGlow)" />
+                <circle r="6" fill="#10b981" />
+                <text y="26" textAnchor="middle" fill="#34d399" fontSize="8.5" fontWeight="800" fontFamily="JetBrains Mono">
+                  CBWTF Hub
                 </text>
               </g>
 
-              {/* Hospital Wards Nodes */}
-              {wardEntries.map(([wId, ward]) => {
-                const wardBins = bins.filter(b => b.wardId === wId);
-                const hasOver = wardBins.some(b => (b.fillPercent || 0) >= 80);
-                const x = ward.coords.x * 3.6;
-                const y = ward.coords.y * 2.8;
-                const isSelected = selectedMapWard && selectedMapWard.id === wId;
+              {/* Hospital Nodes on City Map */}
+              {Object.values(HOSPITALS).map((h) => {
+                const isAcceptedInRoute = sortedRoute.some(r => r.hospitalId === h.id);
+                const isPending = incomingRequests.some(r => r.hospitalId === h.id);
+                const x = h.coords.x * 3.8;
+                const y = h.coords.y * 2.7;
 
                 return (
                   <g
-                    key={wId}
+                    key={h.id}
                     transform={`translate(${x}, ${y})`}
-                    className="route-pin"
-                    onClick={() => setSelectedMapWard(ward)}
+                    className="hosp-map-pin"
+                    onClick={() => setSelectedPin(h)}
                     style={{ cursor: 'pointer' }}
                   >
                     <circle
-                      r={hasOver ? 16 : 12}
-                      fill={hasOver ? '#ef4444' : '#1e293b'}
-                      stroke={isSelected ? '#38bdf8' : hasOver ? '#fee2e2' : '#475569'}
-                      strokeWidth={isSelected ? 3 : hasOver ? 2 : 1.2}
-                      filter={hasOver || isSelected ? 'url(#glow)' : undefined}
-                      className={hasOver ? 'pin-pulse' : ''}
+                      r={isAcceptedInRoute ? 16 : isPending ? 14 : 11}
+                      fill={isAcceptedInRoute ? '#0284c7' : isPending ? '#f59e0b' : '#1e293b'}
+                      stroke={isAcceptedInRoute ? '#38bdf8' : isPending ? '#fde047' : '#475569'}
+                      strokeWidth={isAcceptedInRoute ? 3 : 1.5}
+                      filter={isAcceptedInRoute ? 'url(#hospGlow)' : undefined}
+                      className={isAcceptedInRoute ? 'pin-pulse' : ''}
                     />
-                    <text y="3.5" textAnchor="middle" fill={hasOver ? '#ffffff' : '#94a3b8'} fontSize="9" fontWeight="700" fontFamily="JetBrains Mono">
-                      {wId.replace('ward-', 'W')}
+                    <text y="3.5" textAnchor="middle" fill="#ffffff" fontSize="8.5" fontWeight="800" fontFamily="JetBrains Mono">
+                      {h.shortName.slice(0, 3).toUpperCase()}
                     </text>
-                    <text y="24" textAnchor="middle" fill={isSelected ? '#38bdf8' : '#cbd5e1'} fontSize="8" fontWeight="600">
-                      {ward.name.split(' ')[0]}
+                    <text y="24" textAnchor="middle" fill={isAcceptedInRoute ? '#38bdf8' : '#cbd5e1'} fontSize="8" fontWeight="700">
+                      {h.shortName}
                     </text>
                   </g>
                 );
@@ -485,74 +379,86 @@ export default function TaskList() {
             </svg>
           </div>
 
-          {/* Interactive Selected Station Popover */}
-          {selectedMapWard && (
-            <div className="route-station-card">
-              <div className="route-station-card__header">
-                <div>
-                  <h4 className="route-station-card__title">{selectedMapWard.name}</h4>
-                  <p className="route-station-card__sub">{selectedMapWard.floor} • Node {selectedMapWard.id.toUpperCase()}</p>
-                </div>
-                <button 
-                  type="button"
-                  className="route-station-card__close"
-                  onClick={() => setSelectedMapWard(null)}
-                  title="Close station details"
-                >
-                  ✕
-                </button>
+          {/* Sequential Smart Itinerary List */}
+          <div className="route-itinerary">
+            <div className="route-itinerary__header">
+              <h4 className="route-itinerary__title">Optimized Transit Sequence</h4>
+              <span className="route-itinerary__sub">Execute collections in chronological order below</span>
+            </div>
+
+            {sortedRoute.length === 0 ? (
+              <div className="route-itinerary__empty">
+                <p>No active hospital stops currently assigned. Accept incoming requests from the first tab to build your transit route.</p>
               </div>
+            ) : (
+              <div className="route-stops-list">
+                {sortedRoute.map((stop, idx) => {
+                  const isFirst = idx === 0;
 
-              <div className="route-station-card__body">
-                <div className="route-station-card__bins">
-                  {['yellow', 'red', 'white', 'blue'].map(cat => {
-                    const b = bins.find(item => item.wardId === selectedMapWard.id && item.category === cat) || {
-                      id: `bin-${cat}-${selectedMapWard.id}`,
-                      fillPercent: 0
-                    };
-                    const cInfo = CATEGORY_INFO[cat] || CATEGORY_INFO.unknown;
-                    const fill = b.fillPercent || 0;
-
-                    return (
-                      <div key={cat} className="route-station-bin-pill">
-                        <span className="route-station-bin-dot" style={{ background: cInfo.color }} />
-                        <span className="route-station-bin-name">{cInfo.label.split(' ')[0]}</span>
-                        <span className="route-station-bin-pct" style={{ color: fill >= 80 ? '#f87171' : '#cbd5e1' }}>
-                          {fill}%
+                  return (
+                    <div key={stop.id} className={`route-stop-card ${isFirst ? 'route-stop-card--first' : ''}`}>
+                      <div className="route-stop-card__badge-col">
+                        <span className="route-stop-card__index-pill">
+                          STOP #{idx + 1}
                         </span>
+                        {isFirst && <span className="route-stop-card__next-tag">NEXT WAYPOINT</span>}
+                      </div>
+
+                      <div className="route-stop-card__details">
+                        <div className="route-stop-card__title-row">
+                          <h4 className="route-stop-card__hosp-name">{stop.hospitalName}</h4>
+                          <span className={`hosp-urgency-badge hosp-urgency-badge--${stop.urgency.toLowerCase()}`}>
+                            {stop.urgency}
+                          </span>
+                        </div>
+
+                        <p className="route-stop-card__meta">
+                          <MapPin size={11} />
+                          {stop.hospitalAddress} • <strong>{stop.wardName}</strong>
+                        </p>
+
+                        <div className="route-stop-card__cargo-row">
+                          <span className="route-stop-card__cargo-stat">
+                            <Package size={12} /> {stop.estimatedBags} Bags (~{stop.estimatedWeightKg} kg)
+                          </span>
+                          <span className="route-stop-card__time">
+                            Accepted {stop.acceptedByDriverAt ? new Date(stop.acceptedByDriverAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'recently'}
+                          </span>
+                        </div>
+
+                        {/* Handover / Collection Button */}
                         <button
                           type="button"
-                          className="route-station-reset-btn"
-                          onClick={() => handleConfirmBinPickup(b.id, selectedMapWard.name, cInfo.label)}
-                          title="Reset Bin"
+                          className="route-stop-card__confirm-btn"
+                          onClick={() => handleComplete(stop.id, stop.hospitalName)}
                         >
-                          <RotateCcw size={11} />
+                          <CheckCircle2 size={15} />
+                          <span>Confirm Waste Pickup & Manifest Handover</span>
                         </button>
                       </div>
-                    );
-                  })}
+                    </div>
+                  );
+                })}
+
+                {/* Final Stop at CBWTF Hub */}
+                <div className="route-stop-card route-stop-card--final">
+                  <div className="route-stop-card__badge-col">
+                    <span className="route-stop-card__index-pill route-stop-card__index-pill--hub">
+                      FINAL STOP
+                    </span>
+                  </div>
+                  <div className="route-stop-card__details">
+                    <h4 className="route-stop-card__hosp-name">{CBWTF_FACILITY.name}</h4>
+                    <p className="route-stop-card__meta">
+                      <MapPin size={11} /> {CBWTF_FACILITY.address} • Bio-Hazard Unloading Bay
+                    </p>
+                    <span className="route-stop-card__hub-note">
+                      High-temperature incineration (1100°C), shredding & autoclave sterilization.
+                    </span>
+                  </div>
                 </div>
-
-                <button
-                  type="button"
-                  className="route-station-collect-ward-btn"
-                  onClick={() => {
-                    handleConfirmWardPickup(selectedMapWard.id, selectedMapWard.name);
-                    setSelectedMapWard(null);
-                  }}
-                >
-                  <CheckCircle2 size={14} />
-                  <span>Confirm Pickup for Entire Ward</span>
-                </button>
               </div>
-            </div>
-          )}
-
-          <div className="route-view__tip">
-            <Sparkles size={16} className="text-sky" />
-            <span>
-              <strong>Floorplan Navigation:</strong> Tap any station pin to view 4-bin capacity status and immediately confirm ward transit collections.
-            </span>
+            )}
           </div>
         </div>
       )}

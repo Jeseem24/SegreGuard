@@ -4,22 +4,35 @@ import {
   Scale, 
   Clock, 
   Edit3, 
-  Truck, 
   Volume2,
   Sparkles,
   Camera,
   CheckCircle2,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  Plus,
+  X,
+  RotateCcw
 } from 'lucide-react';
 
 /**
  * ResultPanel:
  * Agency-grade Double-Bezel result card with statutory CPCB color aura,
  * real sensor snapshot thumbnail, clinical compliance reasoning,
- * high-contrast typography, dispatch status feedback, and audio voice guidance.
+ * high-contrast typography, and explicit item lifecycle actions:
+ * - "Add to Respective Bin"
+ * - "Cancel"
+ * - "Scan Another Item"
+ * - "Reclassify / Manual Verify"
  */
-export default function ResultPanel({ result, onCorrect, onRequestPickup, isDispatched }) {
+export default function ResultPanel({ 
+  result, 
+  onCorrect, 
+  onAddToBin, 
+  onCancel, 
+  onScanAnother, 
+  isAdded 
+}) {
   if (!result) return null;
 
   const isLowConfidence = result.confidence < CONFIDENCE_THRESHOLD;
@@ -140,48 +153,71 @@ export default function ResultPanel({ result, onCorrect, onRequestPickup, isDisp
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="result-card__actions">
+        {/* Action Buttons: Add to Bin, Cancel, Scan Another Item */}
+        <div className="result-card__actions-grid">
+          {/* Primary Action: Add to Respective Bin */}
           <button 
             type="button"
-            className="result-btn result-btn--edit" 
-            onClick={onCorrect}
+            className={`result-btn result-btn--add-bin ${isAdded ? 'result-btn--added' : ''}`}
+            onClick={onAddToBin}
+            disabled={isAdded}
+            style={{ 
+              background: isAdded ? '#10b981' : info.color, 
+              color: category === 'white' && !isAdded ? '#050811' : '#ffffff' 
+            }}
           >
-            <Edit3 size={14} />
-            <span>{isLowConfidence ? 'Manual Verify' : 'Reclassify'}</span>
+            {isAdded ? (
+              <>
+                <CheckCircle2 size={16} />
+                <span>Logged to {info.label.split(' ')[0]} Bin ✓</span>
+              </>
+            ) : (
+              <>
+                <Plus size={16} strokeWidth={2.5} />
+                <span>Add to {info.label.split(' ')[0]} Bin</span>
+              </>
+            )}
           </button>
 
-          {!isLowConfidence && (
+          {/* Secondary Action Row: Cancel & Scan Another Item */}
+          <div className="result-card__sub-actions">
             <button 
               type="button"
-              className={`result-btn result-btn--dispatch ${isDispatched ? 'result-btn--dispatched' : ''}`} 
-              onClick={onRequestPickup}
-              disabled={isDispatched}
-              style={{ 
-                background: isDispatched ? '#10b981' : info.color, 
-                color: category === 'white' && !isDispatched ? '#050811' : '#ffffff' 
-              }}
+              className="result-btn result-btn--cancel" 
+              onClick={onCancel}
+              title="Discard this scan and return to camera"
             >
-              {isDispatched ? (
-                <>
-                  <CheckCircle2 size={15} />
-                  <span>Porter Dispatched ✓</span>
-                </>
-              ) : (
-                <>
-                  <Truck size={15} />
-                  <span>Dispatch Porter</span>
-                </>
-              )}
+              <X size={14} />
+              <span>Cancel</span>
             </button>
-          )}
+
+            <button 
+              type="button"
+              className="result-btn result-btn--next" 
+              onClick={onScanAnother}
+              title="Ready camera for next item"
+            >
+              <RotateCcw size={14} />
+              <span>Scan Another Item</span>
+            </button>
+
+            <button 
+              type="button"
+              className="result-btn result-btn--edit-mini" 
+              onClick={onCorrect}
+              title="Correct AI classification"
+            >
+              <Edit3 size={13} />
+              <span>Reclassify</span>
+            </button>
+          </div>
         </div>
 
-        {/* Dispatch Confirmation Banner */}
-        {isDispatched && (
-          <div className="result-card__dispatched-banner">
+        {/* Added Confirmation Banner */}
+        {isAdded && (
+          <div className="result-card__added-banner">
             <CheckCircle2 size={14} className="text-emerald" />
-            <span>Logistics porter dispatched to Ward for {info.label} pickup.</span>
+            <span>Recorded in Hospital CPCB Ledger & Bin Fill Meter Updated (+12%).</span>
           </div>
         )}
       </div>
