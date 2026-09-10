@@ -193,28 +193,6 @@ export default function TaskList() {
 
   return (
     <div className="tasks">
-      {/* Live Cross-Role Synchronized Pop-up Banner */}
-      {liveAlert && (
-        <div className={`tasks__live-alert-banner tasks__live-alert-banner--${liveAlert.type}`}>
-          <div className="tasks__live-alert-icon">
-            <span className="tasks__live-pulse-dot" />
-          </div>
-          <div className="tasks__live-alert-body">
-            <div className="tasks__live-alert-top">
-              <span className="tasks__live-alert-tag">LIVE REGIONAL NETWORK</span>
-              <span className="tasks__live-alert-title">{liveAlert.title}</span>
-            </div>
-            <p className="tasks__live-alert-msg">{liveAlert.message}</p>
-          </div>
-          <button 
-            type="button" 
-            className="tasks__live-alert-close"
-            onClick={() => setLiveAlert(null)}
-          >
-            ✕
-          </button>
-        </div>
-      )}
 
       {/* Toast Feedback */}
       {actionSuccess && (

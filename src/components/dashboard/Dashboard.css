@@ -1099,3 +1099,152 @@
   color: #ffffff;
 }
 
+/* ═══════════════════════════════════════════
+   Real-Time Ward Item Telemetry & Fresh Badges
+   ═══════════════════════════════════════════ */
+.dash__tab-new-badge {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: #10b981;
+  color: #050811;
+  margin-left: 0.35rem;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulse-subtle 1.2s infinite ease-in-out;
+}
+
+.ward-recent-card {
+  margin-top: 1.25rem;
+  padding: 1rem 1.15rem;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+}
+
+.ward-recent-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.ward-recent-card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.ward-recent-card__link {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #38bdf8;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.ward-recent-card__link:hover {
+  text-decoration: underline;
+}
+
+.ward-recent-card__empty {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
+.ward-recent-card__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ward-recent-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.85rem;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+
+.ward-recent-row--fresh {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
+}
+
+.ward-recent-row__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ward-recent-row__name {
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.ward-recent-row__room {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.ward-recent-row__cat {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ward-recent-row__pulse {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  background: #10b981;
+  color: #050811;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  animation: pulse-subtle 1.2s infinite ease-in-out;
+}
+
+.ward-recent-row__time {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.product-row--fresh {
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  background: rgba(16, 185, 129, 0.08) !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2) !important;
+}
+
+.product-row__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.product-row__fresh-badge {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+}
+

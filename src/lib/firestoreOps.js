@@ -89,13 +89,36 @@ function notifyListeners(type) {
   }
 }
 
+// Deduplicated live alert manager with persistent recent-alert cache
+const seenAlertIds = new Set();
+
+function emitAlert(alert) {
+  if (!alert || !alert.id) return;
+  if (seenAlertIds.has(alert.id)) return;
+  seenAlertIds.add(alert.id);
+  if (seenAlertIds.size > 120) {
+    const first = seenAlertIds.values().next().value;
+    seenAlertIds.delete(first);
+  }
+
+  // Cache in localStorage for newly mounted components or tab switches
+  try {
+    const raw = localStorage.getItem('segreguard_recent_alerts');
+    const list = raw ? JSON.parse(raw) : [];
+    const updated = [alert, ...list.filter(a => a.id !== alert.id)].slice(0, 15);
+    localStorage.setItem('segreguard_recent_alerts', JSON.stringify(updated));
+  } catch (_e) {}
+
+  listeners.alerts.forEach(cb => {
+    try { cb(alert); } catch (err) { console.error('Alert listener error:', err); }
+  });
+}
+
 if (localBus) {
   localBus.onmessage = (msg) => {
     if (msg.data) {
       if (msg.data.type === 'live_alert' && msg.data.alert) {
-        listeners.alerts.forEach(cb => {
-          try { cb(msg.data.alert); } catch (e) { console.error(e); }
-        });
+        emitAlert(msg.data.alert);
       }
       if (msg.data.type) {
         notifyListeners(msg.data.type);
@@ -115,9 +138,7 @@ if (typeof window !== 'undefined') {
       try {
         const data = JSON.parse(e.newValue);
         if (data && data.alert) {
-          listeners.alerts.forEach(cb => {
-            try { cb(data.alert); } catch (err) { console.error(err); }
-          });
+          emitAlert(data.alert);
         }
       } catch (_err) {}
     }
@@ -125,9 +146,7 @@ if (typeof window !== 'undefined') {
 
   window.addEventListener('segreguard_live_alert', (e) => {
     if (e.detail) {
-      listeners.alerts.forEach(cb => {
-        try { cb(e.detail); } catch (err) { console.error(err); }
-      });
+      emitAlert(e.detail);
     }
   });
 }
@@ -147,14 +166,12 @@ function broadcast(type) {
 export function broadcastAlert(alertData) {
   const payload = {
     ...alertData,
-    id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+    id: alertData.id || `alert-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
     timestamp: alertData.timestamp || Date.now()
   };
 
   // 1. Direct memory callback to all subscribers in current window
-  listeners.alerts.forEach(cb => {
-    try { cb(payload); } catch (e) { console.error(e); }
-  });
+  emitAlert(payload);
 
   // 2. In-window custom event dispatch
   if (typeof window !== 'undefined') {
@@ -187,21 +204,34 @@ export function broadcastAlert(alertData) {
 export function subscribeToLiveAlerts(callback) {
   listeners.alerts.add(callback);
 
-  const customHandler = (e) => {
-    if (e.detail) {
-      try { callback(e.detail); } catch (err) { console.error(err); }
+  // Catch recent alert if fired within last 8 seconds (handles role / tab switches seamlessly)
+  try {
+    const raw = localStorage.getItem('segreguard_recent_alerts');
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (list && list.length > 0) {
+        const latest = list[0];
+        if (Date.now() - (latest.timestamp || 0) < 8000) {
+          setTimeout(() => {
+            try { callback(latest); } catch (_e) {}
+          }, 30);
+        }
+      }
     }
-  };
-  if (typeof window !== 'undefined') {
-    window.addEventListener('segreguard_live_alert', customHandler);
-  }
+  } catch (_e) {}
 
   return () => {
     listeners.alerts.delete(callback);
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('segreguard_live_alert', customHandler);
-    }
   };
+}
+
+export function getRecentAlerts() {
+  try {
+    const raw = localStorage.getItem('segreguard_recent_alerts');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
 }
 
 // ── Local Storage Data Helpers ──
@@ -709,8 +739,15 @@ export function subscribeToWasteEvents(wardId, callback) {
       
       const unsubCloud = onSnapshot(q, (snapshot) => {
         if (snapshot && !snapshot.empty) {
-          const events = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-          callback(events);
+          const cloudEvents = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          const localEvents = getLocalEvents();
+          const map = new Map();
+          localEvents.forEach(e => map.set(e.id, e));
+          cloudEvents.forEach(e => {
+            if (!map.has(e.id)) map.set(e.id, e);
+          });
+          const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+          callback(wardId ? merged.filter(e => e.wardId === wardId) : merged);
         }
       }, (_err) => {
         // Ignored, local listener is already active
@@ -1183,8 +1220,12 @@ export async function adminDirectRequest({
  */
 export async function acceptLogisticsRequest(requestId, driverId = 'CBWTF Fleet #3') {
   const requests = getLocalRequests();
+  let matchedHosp = 'Hospital';
+  let matchedWard = 'Ward';
   const updated = requests.map(r => {
     if (r.id === requestId) {
+      matchedHosp = r.hospitalShortName || r.hospitalName || 'Hospital';
+      matchedWard = r.wardName || 'Facility Wards';
       return {
         ...r,
         status: 'accepted', // Assigned & on Smart Route
@@ -1195,6 +1236,13 @@ export async function acceptLogisticsRequest(requestId, driverId = 'CBWTF Fleet 
     return r;
   });
   setLocalRequests(updated);
+
+  broadcastAlert({
+    type: 'logistics_dispatch',
+    title: 'Transporter En Route',
+    message: `${driverId} accepted pickup for ${matchedHosp} (${matchedWard}). Driver En Route!`,
+    timestamp: Date.now()
+  });
 }
 
 /**

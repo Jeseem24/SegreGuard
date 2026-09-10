@@ -21,13 +21,16 @@ const GEMINI_MODELS = [
 /**
  * Capture optimized frame from video with scale down and JPEG compression
  */
-export function captureOptimizedFrameBase64(videoElement) {
-  if (!videoElement) return null;
+/**
+ * Capture optimized frame from video or canvas with center focus and JPEG compression
+ */
+export function captureOptimizedFrameBase64(sourceElement) {
+  if (!sourceElement) return null;
 
   const canvas = document.createElement('canvas');
   const maxDim = 640;
-  let vw = videoElement.videoWidth || 640;
-  let vh = videoElement.videoHeight || 480;
+  let vw = sourceElement.videoWidth || sourceElement.width || 640;
+  let vh = sourceElement.videoHeight || sourceElement.height || 480;
 
   if (vw <= 0 || vh <= 0) {
     vw = 640;
@@ -49,10 +52,10 @@ export function captureOptimizedFrameBase64(videoElement) {
   canvas.width = targetW;
   canvas.height = targetH;
   const ctx = canvas.getContext('2d');
-  ctx.drawImage(videoElement, 0, 0, targetW, targetH);
+  ctx.drawImage(sourceElement, 0, 0, targetW, targetH);
 
   // Return base64 without data URI prefix
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
   const commaIdx = dataUrl.indexOf(',');
   return commaIdx !== -1 ? dataUrl.slice(commaIdx + 1) : dataUrl;
 }
@@ -60,36 +63,36 @@ export function captureOptimizedFrameBase64(videoElement) {
 /**
  * Classify a complex medical waste frame with Google Gemini 2.5 Flash Multimodal Vision
  */
-export async function classifyWithGemini(videoElement, apiKey = DEFAULT_GEMINI_API_KEY) {
+export async function classifyWithGemini(sourceElement, apiKey = DEFAULT_GEMINI_API_KEY) {
   const activeKey = apiKey || DEFAULT_GEMINI_API_KEY;
   if (!activeKey) {
     throw new Error('Gemini API Key required for Cloud Vision.');
   }
 
-  const base64Image = captureOptimizedFrameBase64(videoElement);
+  const base64Image = captureOptimizedFrameBase64(sourceElement);
   if (!base64Image) {
     throw new Error('Could not capture frame from camera video feed');
   }
 
   const promptText = `
-You are an expert Bio-Medical Waste Inspector in India under CPCB Bio-Medical Waste Management Rules, 2016 (Schedule I).
-Inspect the medical or clinical waste item shown in this camera frame (or held up to the camera).
+You are an expert Clinical Bio-Medical Waste Auditor in India under CPCB Bio-Medical Waste Management Rules, 2016 (Schedule I).
+Analyze the primary object or medical item held up to the camera or placed in the frame. Even if held by hand, focus on the object itself.
 
-CRITICAL STATUTORY RULES:
-1. Face masks (surgical masks, N95, cloth masks, respirators), gauze, cotton, bandages, soiled linen, and anatomical items -> Category "yellow" (Incineration / Deep Burial, Schedule I Part-1 Category Yellow(b)).
-2. Contaminated plastics (nitrile/latex gloves, plastic syringes without needle, IV tubing, urine bags, plastic catheters, saline bottles) -> Category "red" (Autoclaving + Shredding + Recycling, Schedule I Part-1 Category Red).
-3. Contaminated sharps (needles, syringes with fixed needle, scalpels, surgical blades, lancets) -> Category "white" (Autoclave/Dry Heat Sterilization + Shredding/Encapsulation, Schedule I Part-1 Category White).
-4. Glassware & ampoules (medicine vials, antibiotic glass ampoules, glass bottles, broken glass) -> Category "blue" (Sodium Hypochlorite Disinfection + Glass Recycling, Schedule I Part-1 Category Blue).
-5. General non-biomedical packaging (clean paper, cardboard, snack wrappers, plastic wrappers) -> Category "black" (Municipal Solid Waste).
+STATUTORY CATEGORY IDENTIFICATION:
+1. Disposable plastic syringe with fixed needle, needle, scalpels, surgical blades, lancets, sharps -> Category "white" (Waste Sharps including Metals, Schedule I Part-1 Category White).
+2. Plastic syringes without needle, IV tubing, urine bags, plastic catheters, latex/nitrile gloves, plastic saline bottles -> Category "red" (Contaminated Plastic Waste, Schedule I Part-1 Category Red).
+3. Face masks (surgical 3-ply masks, N95, cloth masks), cotton, gauze, dressings, bandages, soiled linen, anatomical items -> Category "yellow" (Incineration/Deep Burial, Schedule I Part-1 Category Yellow(b)).
+4. Glassware & ampoules (medicine vials, antibiotic glass ampoules, glass bottles) -> Category "blue" (Disinfection & Glass Recycling, Schedule I Part-1 Category Blue).
+5. Clean packaging, non-contaminated wrappers, paper -> Category "black" (Municipal Solid Waste).
 
-Return ONLY a valid JSON object matching this exact schema:
+Return ONLY valid JSON matching this schema:
 {
-  "itemLabel": "Specific clinical item name (e.g. 3-Ply Surgical Face Mask, Disposable Syringe w/o Needle, Blood-Soiled Gauze, Nitrile Glove, Medicine Glass Vial, Scalpel Blade)",
-  "detectedCategory": "yellow" | "red" | "white" | "blue" | "black",
+  "itemLabel": "Clear clinical name (e.g. Disposable Syringe with Needle, Surgical Face Mask, Nitrile Examination Glove, Glass Medicine Vial)",
+  "detectedCategory": "white" | "red" | "yellow" | "blue" | "black",
   "confidence": 0.96,
-  "ruleCitation": "CPCB BMW Rules 2016 Schedule I Part-1 Category Yellow (b) / Red / White / Blue",
-  "disposalRoute": "Official CPCB treatment method (e.g. High-Temperature Incineration at 1050°C, Autoclave followed by Shredding, Disinfection with Sodium Hypochlorite)",
-  "clinicalReasoning": "1 concise sentence stating why this item is classified into this color bin under statutory CPCB 2016 rules."
+  "ruleCitation": "CPCB BMW Rules 2016 Schedule I Part-1",
+  "disposalRoute": "Specific statutory disposal route",
+  "clinicalReasoning": "1 concise sentence explaining the classification under CPCB 2016 rules."
 }
 `;
 
@@ -118,7 +121,8 @@ Return ONLY a valid JSON object matching this exact schema:
           generationConfig: {
             temperature: 0.1,
             response_mime_type: 'application/json',
-            maxOutputTokens: 2048 // Sufficient headroom for Gemini 2.5 Flash reasoning tokens
+            thinking_config: { thinking_budget: 0 },
+            maxOutputTokens: 1024
           }
         })
       });

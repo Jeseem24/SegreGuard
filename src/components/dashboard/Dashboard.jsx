@@ -45,6 +45,7 @@ export default function Dashboard() {
   const [selectedWard, setSelectedWard] = useState('ward-1');
   const [actionNotice, setActionNotice] = useState(null);
   const [exportedToast, setExportedToast] = useState(false);
+  const [hasNewProductPulse, setHasNewProductPulse] = useState(false);
   const [liveAlert, setLiveAlert] = useState(null);
 
   const hospital = HOSPITALS[selectedHospitalId] || HOSPITALS['hosp-apex'];
@@ -54,6 +55,10 @@ export default function Dashboard() {
     const unsubBins = subscribeToBins((data) => setBins(data || []));
     const unsubReqs = subscribeToHospitalRequests(selectedHospitalId, (data) => setRequests(data || []));
     const unsubAlerts = subscribeToLiveAlerts((alert) => {
+      if (alert && alert.type === 'waste_disposed') {
+        setHasNewProductPulse(true);
+        setTimeout(() => setHasNewProductPulse(false), 12000);
+      }
       setLiveAlert(alert);
       setTimeout(() => setLiveAlert(null), 5500);
     });
@@ -141,40 +146,11 @@ export default function Dashboard() {
     document.body.removeChild(link);
 
     setExportedToast(true);
-    setTimeout(() => setExportedToast(false), 3500);
+    setTimeout(() => setExportedToast(false), 4000);
   };
 
   return (
     <div className="dash">
-      {/* Live Cross-Role Synchronized Pop-up Banner */}
-      {liveAlert && (
-        <div className={`dash__live-alert-banner dash__live-alert-banner--${liveAlert.type}`}>
-          <div className="dash__live-alert-icon">
-            {liveAlert.type === 'waste_disposed' ? (
-              <span className="dash__live-pulse-dot" />
-            ) : liveAlert.type === 'nurse_request' ? (
-              <AlertTriangle size={18} className="text-amber" />
-            ) : (
-              <CheckCircle2 size={18} className="text-emerald" />
-            )}
-          </div>
-          <div className="dash__live-alert-body">
-            <div className="dash__live-alert-top">
-              <span className="dash__live-alert-tag">LIVE PLATFORM SYNC</span>
-              <span className="dash__live-alert-title">{liveAlert.title}</span>
-            </div>
-            <p className="dash__live-alert-msg">{liveAlert.message}</p>
-          </div>
-          <button 
-            type="button" 
-            className="dash__live-alert-close"
-            onClick={() => setLiveAlert(null)}
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
       {/* Toast Notice */}
       {actionNotice && (
         <div className="dash__toast-floating">
@@ -338,10 +314,14 @@ export default function Dashboard() {
         <button
           type="button"
           className={`dash__view-tab ${activeView === 'products' ? 'dash__view-tab--active' : ''}`}
-          onClick={() => setActiveView('products')}
+          onClick={() => {
+            setActiveView('products');
+            setHasNewProductPulse(false);
+          }}
         >
           <PackageCheck size={15} />
           <span>Recently Added Products ({hospitalEvents.length})</span>
+          {hasNewProductPulse && <span className="dash__tab-new-badge">NEW</span>}
         </button>
         <button
           type="button"
@@ -468,6 +448,46 @@ export default function Dashboard() {
                 );
               })}
             </div>
+
+            {/* Real-time Ward Item Feed */}
+            <div className="ward-recent-card">
+              <div className="ward-recent-card__top">
+                <div className="ward-recent-card__title">
+                  <PackageCheck size={14} className="text-sky" />
+                  <span>Recent Waste Logged in {currentWardData.name}</span>
+                </div>
+                <button
+                  type="button"
+                  className="ward-recent-card__link"
+                  onClick={() => setActiveView('products')}
+                >
+                  View All Products ({hospitalEvents.length}) →
+                </button>
+              </div>
+
+              <div className="ward-recent-card__items">
+                {hospitalEvents.filter(e => e.wardId === selectedWard).slice(0, 3).length === 0 ? (
+                  <div className="ward-recent-card__empty">No waste items logged in {currentWardData.name} yet today. Use the Point-of-Care scanner to log waste.</div>
+                ) : (
+                  hospitalEvents.filter(e => e.wardId === selectedWard).slice(0, 3).map((evt, eIdx) => {
+                    const cInfo = CATEGORY_INFO[evt.category] || CATEGORY_INFO.unknown;
+                    const isFresh = evt.createdAt && (Date.now() - new Date(evt.createdAt).getTime() < 120000);
+                    return (
+                      <div key={evt.id || eIdx} className={`ward-recent-row ${isFresh ? 'ward-recent-row--fresh' : ''}`}>
+                        <span className="ward-recent-row__dot" style={{ background: cInfo.color }} />
+                        <span className="ward-recent-row__name">{evt.itemLabel}</span>
+                        <span className="ward-recent-row__room">{evt.room || 'General'}</span>
+                        <span className="ward-recent-row__cat" style={{ color: cInfo.color }}>{cInfo.label.split(' ')[0]}</span>
+                        {isFresh && <span className="ward-recent-row__pulse">LIVE SCAN</span>}
+                        <span className="ward-recent-row__time">
+                          {evt.createdAt ? new Date(evt.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -493,12 +513,13 @@ export default function Dashboard() {
                 const cInfo = CATEGORY_INFO[evt.category] || CATEGORY_INFO.unknown;
                 const wardName = hospital.wards[evt.wardId]?.name || evt.wardId || 'ICU-3';
                 const roomName = evt.room || (hospital.wards[evt.wardId]?.rooms?.[0] || 'Ward Station');
+                const isFresh = evt.createdAt && (Date.now() - new Date(evt.createdAt).getTime() < 120000);
                 const timeStr = evt.createdAt
                   ? new Date(evt.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
                   : 'Just now';
 
                 return (
-                  <div key={evt.id || idx} className="product-row" style={{ '--row-accent': cInfo.color }}>
+                  <div key={evt.id || idx} className={`product-row ${isFresh ? 'product-row--fresh' : ''}`} style={{ '--row-accent': cInfo.color }}>
                     <div className="product-row__left">
                       <div 
                         className="product-row__category-tag"
@@ -509,7 +530,10 @@ export default function Dashboard() {
                       </div>
 
                       <div className="product-row__details">
-                        <h4 className="product-row__item-name">{evt.itemLabel}</h4>
+                        <div className="product-row__title-row">
+                          <h4 className="product-row__item-name">{evt.itemLabel}</h4>
+                          {isFresh && <span className="product-row__fresh-badge">LIVE SYNCED ✓</span>}
+                        </div>
                         <div className="product-row__meta">
                           <span className="product-row__location">
                             <MapPin size={11} />

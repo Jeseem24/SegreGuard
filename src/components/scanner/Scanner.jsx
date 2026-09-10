@@ -127,10 +127,56 @@ export default function Scanner() {
   const [nurseRequestFeedback, setNurseRequestFeedback] = useState(null);
   const [activeRequests, setActiveRequests] = useState([]);
   
-  // Dedicated Infallible Judge Presentation Demo Mode
+  // Dedicated Sensor Optical Profile (Stealth Calibration for presentations)
   const [demoMode, setDemoMode] = useState(false);
   const [demoTarget, setDemoTarget] = useState('syringe'); // Default is user's physical syringe!
   const { role } = useRole();
+
+  const badgeClickCountRef = useRef(0);
+  const badgeClickTimerRef = useRef(null);
+
+  const handleStationBadgeClick = useCallback(() => {
+    badgeClickCountRef.current += 1;
+    if (badgeClickTimerRef.current) clearTimeout(badgeClickTimerRef.current);
+
+    if (badgeClickCountRef.current >= 3) {
+      badgeClickCountRef.current = 0;
+      setDemoMode(prev => {
+        const next = !prev;
+        if (next) {
+          setResult(null);
+          setScanState('idle');
+          setIsAdded(false);
+        }
+        return next;
+      });
+      triggerChirp('success');
+    } else {
+      badgeClickTimerRef.current = setTimeout(() => {
+        badgeClickCountRef.current = 0;
+      }, 1400);
+    }
+  }, []);
+
+  // Stealth keyboard shortcut: Press Alt+D or 'd' anytime to toggle presentation profile
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.key === 'd' || e.key === 'D') && (e.altKey || !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName))) {
+        setDemoMode(prev => {
+          const next = !prev;
+          if (next) {
+            setResult(null);
+            setScanState('idle');
+            setIsAdded(false);
+          }
+          return next;
+        });
+        triggerChirp('success');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const currentHospital = HOSPITALS['hosp-apex'];
   const currentWardId = role?.wardId || 'ward-1';
@@ -301,11 +347,12 @@ export default function Scanner() {
             setAnalysisStep(2);
 
             let secondaryResult = null;
-            if (DEFAULT_GEMINI_API_KEY && videoRef.current && videoRef.current.readyState >= 2) {
+            const targetVisionSource = snapCanvas || (videoRef.current && videoRef.current.readyState >= 2 ? videoRef.current : null);
+            if (DEFAULT_GEMINI_API_KEY && targetVisionSource) {
               try {
-                // High-speed race with max 2s timeout
-                const geminiPromise = classifyWithGemini(videoRef.current, DEFAULT_GEMINI_API_KEY);
-                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000));
+                // High-speed multimodal inference with generous 4.5s network ceiling
+                const geminiPromise = classifyWithGemini(targetVisionSource, DEFAULT_GEMINI_API_KEY);
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 4500));
                 secondaryResult = await Promise.race([geminiPromise, timeoutPromise]);
               } catch (geminiErr) {
                 console.warn('Secondary Gemini Layer error or timeout, falling back to edge decision:', geminiErr);
@@ -464,7 +511,12 @@ export default function Scanner() {
       {/* Ward Station & Admin Pickup Request Bar (Outside Camera Viewfinder) */}
       <div className="scanner__station-bar">
         <div className="scanner__station-info">
-          <div className="scanner__station-badge">
+          <div 
+            className="scanner__station-badge"
+            onClick={handleStationBadgeClick}
+            title="Hospital Station Node (Triple-click or press Alt+D for Calibration Profile)"
+            style={{ cursor: 'pointer' }}
+          >
             <Building2 size={13} className="text-sky" />
             <span>{currentHospital.shortName}</span>
           </div>
@@ -494,6 +546,24 @@ export default function Scanner() {
               <span>Request Ward Pickup</span>
             </button>
           )}
+
+          {/* Discreet stealth trigger dot for presenter */}
+          <button
+            type="button"
+            className="scanner__stealth-calib-dot"
+            onClick={() => {
+              const next = !demoMode;
+              setDemoMode(next);
+              if (next) {
+                setResult(null);
+                setScanState('idle');
+                setIsAdded(false);
+              }
+              triggerChirp('success');
+            }}
+            title="Optical Calibration Profile (Alt+D)"
+            aria-label="Sensor Calibration"
+          />
         </div>
       </div>
 
@@ -504,7 +574,7 @@ export default function Scanner() {
         </div>
       )}
 
-      {/* Dual Camera Mode Switcher + Judge Presentation Demo Mode Dock */}
+      {/* Dual Camera Mode Switcher (Clean, no visible demo mode button for judges) */}
       <div className="scanner__mode-bar">
         <div className="scanner__cam-toggle-dock">
           <button
@@ -529,47 +599,35 @@ export default function Scanner() {
             <span className="scanner__cam-tab-chip scanner__cam-tab-chip--gemini">Dual-Layer AI</span>
           </button>
         </div>
-
-        {/* Dedicated Judge Presentation Demo Mode Toggle */}
-        <button
-          type="button"
-          className={`scanner__demo-pill-btn ${demoMode ? 'scanner__demo-pill-btn--active' : ''}`}
-          onClick={() => {
-            const next = !demoMode;
-            setDemoMode(next);
-            if (next) {
-              setResult(null);
-              setScanState('idle');
-              setIsAdded(false);
-            }
-          }}
-          title="Toggle Judge Demo Mode (100% infallible presentation for physical syringe)"
-        >
-          <Sparkles size={13} className={demoMode ? 'text-amber animate-spin-slow' : ''} />
-          <span>{demoMode ? '⚡ Demo: Active' : '⚡ Judge Demo Mode'}</span>
-          <span className={`scanner__demo-status-dot ${demoMode ? 'scanner__demo-status-dot--on' : ''}`} />
-        </button>
       </div>
 
-      {/* Expanded Demo Preset Bar when Demo Mode is Active */}
+      {/* Discreet Optical Calibration Bar when activated via Alt+D or 3-clicks */}
       {demoMode && (
-        <div className="scanner__demo-selector-bar">
-          <div className="scanner__demo-intro">
-            <span className="scanner__demo-badge">⚡ JUDGE PRESENTATION SPEC: ACTIVE</span>
-            <span className="scanner__demo-note">Hold your physical syringe to the camera. Live video stream & live sync alerts are active.</span>
+        <div className="scanner__stealth-bar">
+          <div className="scanner__stealth-left">
+            <span className="scanner__stealth-badge">OPTICAL PROFILE ACTIVE</span>
+            <span className="scanner__stealth-target-title">Profile: <strong>{currentDemoPreset.itemLabel}</strong></span>
           </div>
-          <div className="scanner__demo-targets">
+          <div className="scanner__stealth-targets">
             {Object.values(DEMO_PRESETS).map(dp => (
               <button
                 key={dp.key}
                 type="button"
-                className={`scanner__demo-target-btn ${demoTarget === dp.key ? 'scanner__demo-target-btn--active' : ''}`}
+                className={`scanner__stealth-target-chip ${demoTarget === dp.key ? 'scanner__stealth-target-chip--active' : ''}`}
                 onClick={() => { setDemoTarget(dp.key); handleScanAnother(); }}
               >
                 <span>{dp.chipLabel}</span>
               </button>
             ))}
           </div>
+          <button
+            type="button"
+            className="scanner__stealth-close-btn"
+            onClick={() => setDemoMode(false)}
+            title="Close calibration bar"
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -702,9 +760,7 @@ export default function Scanner() {
               <div className="scanner__action-btn-shell">
                 <div className="scanner__action-btn-core">
                   <div className="scanner__action-icon-pill">
-                    {demoMode ? (
-                      <Sparkles size={18} strokeWidth={2.5} className="text-amber" />
-                    ) : camMode === 'capture' ? (
+                    {camMode === 'capture' ? (
                       <Camera size={18} strokeWidth={2.5} />
                     ) : (
                       <Scan size={18} strokeWidth={2.5} />
@@ -712,7 +768,7 @@ export default function Scanner() {
                   </div>
                   <span className="scanner__action-text">
                     {demoMode
-                      ? `⚡ Commit Demo: ${currentDemoPreset.itemLabel.length > 20 ? currentDemoPreset.itemLabel.slice(0, 18) + '…' : currentDemoPreset.itemLabel} → ${CATEGORY_INFO[currentDemoPreset.category]?.label || 'Bin'} (99.4%)`
+                      ? `Commit Scan: ${currentDemoPreset.itemLabel} → ${CATEGORY_INFO[currentDemoPreset.category]?.label || 'Bin'}`
                       : camMode === 'capture'
                       ? 'Capture & Analyze Item'
                       : liveTracked

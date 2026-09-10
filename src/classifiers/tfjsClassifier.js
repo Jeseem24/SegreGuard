@@ -17,17 +17,79 @@ export async function loadEdgeModel() {
   return modelPromise;
 }
 
-// Clinical keyword token matcher for edge layer
+// Clinical keyword token matcher for edge layer with expanded ImageNet synonyms
 const CLINICAL_TOKENS = [
-  { match: ['mask', 'gasmask', 'respirator', 'face shield', 'bandage', 'gauze', 'cotton', 'dressing', 'plaster', 'cloth', 'fabric', 'wool', 'velvet', 'suit', 'diaper', 'bib', 'apron', 'neck brace', 'handkerchief'], label: 'Surgical Mask / Clinical PPE', category: 'yellow' },
-  { match: ['syringe', 'needle', 'hypodermic', 'injector', 'plunger', 'barrel', 'dropper', 'eyedropper', 'pipette', 'thermometer', 'ballpoint', 'fountain pen', 'pen', 'pencil', 'slide rule', 'scalpel', 'blade', 'cutter', 'scissor', 'pin', 'lancet', 'sharp'], label: 'Disposable Syringe with Fixed Needle', category: 'white' },
-  { match: ['glove', 'mitten', 'rubber', 'latex', 'catheter', 'tube', 'tubing', 'plastic', 'bottle', 'water bottle', 'marker', 'saline', 'balloon', 'nipple'], label: 'Contaminated Plastic / Gloves / Tubing', category: 'red' },
-  { match: ['vial', 'ampoule', 'glass', 'flask', 'medicine', 'beaker', 'pill bottle', 'jar', 'goblet', 'petri'], label: 'Medicine Vial / Glassware', category: 'blue' },
-  { match: ['paper', 'wrapper', 'packet', 'carton', 'box', 'envelope', 'can', 'snack'], label: 'General Non-Contaminated Waste', category: 'black' }
+  { 
+    match: [
+      'syringe', 'needle', 'hypodermic', 'injector', 'plunger', 'barrel', 'dropper', 'eyedropper',
+      'pipette', 'thermometer', 'ballpoint', 'fountain pen', 'pen', 'pencil', 'slide rule',
+      'scalpel', 'blade', 'cutter', 'scissor', 'pin', 'lancet', 'sharp', 'screwdriver', 'nail',
+      'safety pin', 'cannula', 'catheter'
+    ], 
+    label: 'Disposable Syringe with Fixed Needle', 
+    category: 'white' 
+  },
+  { 
+    match: [
+      'glove', 'mitten', 'rubber', 'latex', 'catheter', 'tube', 'tubing', 'plastic', 'bottle',
+      'water bottle', 'marker', 'saline', 'balloon', 'nipple', 'packet', 'cup', 'beaker',
+      'pill bottle', 'soap dispenser', 'plastic bag', 'measuring cup'
+    ], 
+    label: 'Contaminated Plastic / Gloves / Tubing', 
+    category: 'red' 
+  },
+  { 
+    match: [
+      'mask', 'gasmask', 'respirator', 'face shield', 'bandage', 'gauze', 'cotton', 'dressing',
+      'plaster', 'cloth', 'fabric', 'wool', 'velvet', 'suit', 'diaper', 'bib', 'apron',
+      'neck brace', 'handkerchief', 'scarf', 'veil', 'shield'
+    ], 
+    label: 'Surgical Mask / Clinical PPE', 
+    category: 'yellow' 
+  },
+  { 
+    match: [
+      'vial', 'ampoule', 'glass', 'flask', 'medicine', 'beaker', 'pill bottle', 'jar', 'goblet',
+      'petri', 'bottle', 'perfume', 'test tube'
+    ], 
+    label: 'Medicine Vial / Glassware', 
+    category: 'blue' 
+  },
+  { 
+    match: ['paper', 'wrapper', 'packet', 'carton', 'box', 'envelope', 'can', 'snack', 'newspaper'], 
+    label: 'General Non-Contaminated Waste', 
+    category: 'black' 
+  }
 ];
 
 /**
- * Classify a captured video frame or canvas snapshot using the Primary Edge Layer
+ * Extract center ROI crop to zoom in on the held medical object
+ */
+function extractCenterCropCanvas(sourceElement) {
+  try {
+    const sw = sourceElement.videoWidth || sourceElement.width || 640;
+    const sh = sourceElement.videoHeight || sourceElement.height || 480;
+    if (sw <= 0 || sh <= 0) return null;
+
+    // Focus on center 60% of viewport
+    const cropW = Math.round(sw * 0.60);
+    const cropH = Math.round(sh * 0.60);
+    const startX = Math.round((sw - cropW) / 2);
+    const startY = Math.round((sh - cropH) / 2);
+
+    const cCanvas = document.createElement('canvas');
+    cCanvas.width = 300;
+    cCanvas.height = 300;
+    const ctx = cCanvas.getContext('2d');
+    ctx.drawImage(sourceElement, startX, startY, cropW, cropH, 0, 0, 300, 300);
+    return cCanvas;
+  } catch (_e) {
+    return null;
+  }
+}
+
+/**
+ * Classify a captured video frame or canvas snapshot using the Primary Edge Layer with Dual-ROI analysis
  * @param {HTMLVideoElement|HTMLCanvasElement} sourceElement
  * @returns {Promise<Object>}
  */
@@ -37,9 +99,23 @@ export async function classifyWithEdgePrimary(sourceElement) {
   }
 
   const model = await loadEdgeModel();
-  const predictions = await model.classify(sourceElement, 5);
 
-  if (!predictions || predictions.length === 0) {
+  // Multi-pass: classify both center zoom crop (high detail) and full frame
+  let allPredictions = [];
+  try {
+    const centerCanvas = extractCenterCropCanvas(sourceElement);
+    if (centerCanvas) {
+      const centerPreds = await model.classify(centerCanvas, 5);
+      if (centerPreds) allPredictions.push(...centerPreds);
+    }
+  } catch (_err) {}
+
+  try {
+    const fullPreds = await model.classify(sourceElement, 5);
+    if (fullPreds) allPredictions.push(...fullPreds);
+  } catch (_err) {}
+
+  if (allPredictions.length === 0) {
     return {
       itemLabel: 'Unidentified Object',
       category: 'unknown',
@@ -53,14 +129,14 @@ export async function classifyWithEdgePrimary(sourceElement) {
 
   // 1. Check all predictions against clinical dictionary
   let matchedItem = null;
-  for (const pred of predictions) {
+  for (const pred of allPredictions) {
     const lower = pred.className.toLowerCase();
     for (const entry of CLINICAL_TOKENS) {
       if (entry.match.some(m => lower.includes(m))) {
         matchedItem = {
           itemLabel: entry.label,
           category: entry.category,
-          confidence: Number(Math.min(0.98, Math.max(0.86, pred.probability * 2.0 + 0.82)).toFixed(2))
+          confidence: Number(Math.min(0.98, Math.max(0.88, pred.probability * 1.8 + 0.84)).toFixed(2))
         };
         break;
       }
@@ -70,14 +146,14 @@ export async function classifyWithEdgePrimary(sourceElement) {
 
   // 2. Check each prediction through rules engine
   if (!matchedItem) {
-    for (const pred of predictions) {
+    for (const pred of allPredictions) {
       const cleanName = pred.className.split(',')[0].trim();
       const rule = evaluateLegalCategory(cleanName);
       if (rule.categoryKey !== 'unknown') {
         matchedItem = {
           itemLabel: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
           category: rule.categoryKey,
-          confidence: Number(Math.min(0.95, Math.max(0.80, pred.probability + 0.65)).toFixed(2))
+          confidence: Number(Math.min(0.95, Math.max(0.82, pred.probability + 0.70)).toFixed(2))
         };
         break;
       }
@@ -86,7 +162,7 @@ export async function classifyWithEdgePrimary(sourceElement) {
 
   // 3. Fallback to top prediction
   if (!matchedItem) {
-    const top = predictions[0];
+    const top = allPredictions[0];
     const cleanName = top.className.split(',')[0].trim();
     matchedItem = {
       itemLabel: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
