@@ -120,6 +120,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.6rem;
   padding: 0.65rem 1rem;
   background: rgba(10, 15, 29, 0.85);
   backdrop-filter: blur(16px);
@@ -127,36 +128,15 @@
   position: sticky;
   top: 0;
   z-index: 30;
-}
-
-.scanner__telemetry-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.scanner__telemetry-pulse {
-  width: 6px;
-  height: 6px;
-  background: #38bdf8;
-  border-radius: 50%;
-  box-shadow: 0 0 8px #38bdf8;
-  animation: pulse-subtle 2s infinite ease-in-out;
-}
-
-.scanner__telemetry-text {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #7dd3fc;
-  letter-spacing: 0.08em;
+  flex-wrap: wrap;
 }
 
 .scanner__cam-toggle-dock {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.35rem;
-  width: 100%;
+  flex: 1;
+  min-width: 240px;
   background: rgba(15, 23, 42, 0.7);
   padding: 0.3rem;
   border-radius: 14px;
@@ -1263,5 +1243,221 @@
   font-size: 0.75rem;
   color: #94a3b8;
   line-height: 1.35;
+}
+
+/* ═══════════════════════════════════════════
+   Judge Presentation Demo Mode Styles
+   ═══════════════════════════════════════════ */
+.scanner__demo-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 12px;
+  background: rgba(245, 197, 24, 0.08);
+  border: 1px solid rgba(245, 197, 24, 0.28);
+  color: #fde047;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.scanner__demo-pill-btn:hover {
+  background: rgba(245, 197, 24, 0.18);
+  border-color: #f5c518;
+  box-shadow: 0 0 16px rgba(245, 197, 24, 0.35);
+  transform: translateY(-1px);
+}
+
+.scanner__demo-pill-btn--active {
+  background: linear-gradient(135deg, rgba(245, 197, 24, 0.25) 0%, rgba(245, 158, 11, 0.35) 100%);
+  border: 1px solid #f5c518;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(245, 197, 24, 0.5);
+}
+
+.scanner__demo-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #64748b;
+  transition: all 0.2s ease;
+}
+
+.scanner__demo-status-dot--on {
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: pulse-subtle 1.8s infinite ease-in-out;
+}
+
+.scanner__demo-selector-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(180deg, rgba(16, 24, 40, 0.96) 0%, rgba(10, 15, 29, 0.96) 100%);
+  border-bottom: 1px solid rgba(245, 197, 24, 0.35);
+  box-shadow: inset 0 1px 0 rgba(245, 197, 24, 0.2);
+  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scanner__demo-intro {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.scanner__demo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: #f5c518;
+  color: #050811;
+  font-size: 0.64rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+
+.scanner__demo-note {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+}
+
+.scanner__demo-targets {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.scanner__demo-target-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scanner__demo-target-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.scanner__demo-target-btn--active {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+  font-weight: 700;
+}
+
+/* ── Infallible Judge Demo HUD Target Box ── */
+.scanner__demo-reticle-box {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 250px;
+  height: 220px;
+  pointer-events: none;
+  z-index: 18;
+}
+
+.demo-reticle-brackets {
+  position: absolute;
+  inset: 0;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+}
+
+.drb {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: var(--target-color, #38bdf8);
+  border-style: solid;
+  filter: drop-shadow(0 0 8px var(--target-color, #38bdf8));
+}
+
+.drb--tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-top-left-radius: 8px; }
+.drb--tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-top-right-radius: 8px; }
+.drb--bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-bottom-left-radius: 8px; }
+.drb--br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-bottom-right-radius: 8px; }
+
+.demo-reticle-laser {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--target-color, #38bdf8), transparent);
+  box-shadow: 0 0 12px var(--target-color, #38bdf8);
+  animation: demoLaserScan 2s infinite ease-in-out;
+}
+
+@keyframes demoLaserScan {
+  0% { top: 12%; opacity: 0.3; }
+  50% { top: 88%; opacity: 0.95; }
+  100% { top: 12%; opacity: 0.3; }
+}
+
+.demo-reticle-tag {
+  position: absolute;
+  bottom: -48px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  background: rgba(7, 13, 29, 0.94);
+  border: 1px solid var(--target-color, #38bdf8);
+  border-radius: 8px;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.7), 0 0 12px var(--target-color, #38bdf8);
+  white-space: nowrap;
+}
+
+.demo-reticle-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--target-color, #38bdf8);
+  box-shadow: 0 0 8px var(--target-color, #38bdf8);
+  animation: pulse-subtle 1.5s infinite ease-in-out;
+}
+
+.demo-reticle-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-reticle-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.demo-reticle-meta {
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: var(--target-color, #38bdf8);
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
 }
 

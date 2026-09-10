@@ -437,18 +437,6 @@
       "source_location": "L1237"
     },
     {
-      "id": "src_lib_firestoreops_subscribetowasteevents",
-      "label": "subscribeToWasteEvents()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "firestoreOps.js",
-      "file_type": "code",
-      "norm_label": "subscribetowasteevents()",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L610"
-    },
-    {
       "id": "src_lib_firestoreops_updatebinfill",
       "label": "updateBinFill()",
       "_callable": true,
@@ -494,7 +482,7 @@
       "file_type": "code",
       "norm_label": "capitalize()",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L455"
+      "source_location": "L452"
     },
     {
       "id": "src_classifiers_livetracker_drawholographicbox",
@@ -506,7 +494,7 @@
       "file_type": "code",
       "norm_label": "drawholographicbox()",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L340"
+      "source_location": "L337"
     },
     {
       "id": "src_classifiers_livetracker_drawtacticalcrosshairs",
@@ -518,7 +506,7 @@
       "file_type": "code",
       "norm_label": "drawtacticalcrosshairs()",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L425"
+      "source_location": "L422"
     },
     {
       "id": "src_classifiers_livetracker_loadmodels",
@@ -542,7 +530,7 @@
       "file_type": "code",
       "norm_label": "matchclinicalvocabulary()",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L92"
+      "source_location": "L79"
     },
     {
       "id": "src_classifiers_livetracker_startlivetracking",
@@ -554,7 +542,7 @@
       "file_type": "code",
       "norm_label": "startlivetracking()",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L106"
+      "source_location": "L93"
     },
     {
       "id": "src_classifiers_livetracker_startlivetracking_render",
@@ -566,7 +554,7 @@
       "file_type": "code",
       "norm_label": "render()",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L256"
+      "source_location": "L253"
     },
     {
       "id": "src_classifiers_livetracker_startlivetracking_runinference",
@@ -578,7 +566,7 @@
       "file_type": "code",
       "norm_label": "runinference()",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L127"
+      "source_location": "L114"
     },
     {
       "id": "src_classifiers_mockclassifier_classify",
@@ -698,7 +686,7 @@
       "file_type": "code",
       "norm_label": "scanner()",
       "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L113"
+      "source_location": "L45"
     },
     {
       "id": "src_app_app",
@@ -843,6 +831,18 @@
       "norm_label": "userole()",
       "source_file": "src/context/RoleContext.jsx",
       "source_location": "L68"
+    },
+    {
+      "id": "src_lib_firestoreops_subscribetowasteevents",
+      "label": "subscribeToWasteEvents()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "App.jsx",
+      "file_type": "code",
+      "norm_label": "subscribetowasteevents()",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L610"
     },
     {
       "id": "src_components_dashboard_dashboard",
@@ -1018,7 +1018,7 @@
       "file_type": "code",
       "norm_label": "clinical_vocabulary",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L35"
+      "source_location": "L34"
     },
     {
       "id": "src_classifiers_livetracker_ignored_classes",
@@ -1029,7 +1029,7 @@
       "file_type": "code",
       "norm_label": "ignored_classes",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L29"
+      "source_location": "L28"
     },
     {
       "id": "src_classifiers_mockclassifier",
@@ -1162,17 +1162,6 @@
       "norm_label": "benchmark_samples",
       "source_file": "src/components/scanner/Scanner.jsx",
       "source_location": "L36"
-    },
-    {
-      "id": "src_components_scanner_scanner_demo_presets",
-      "label": "DEMO_PRESETS",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Scanner.jsx",
-      "file_type": "code",
-      "norm_label": "demo_presets",
-      "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L46"
     },
     {
       "id": "vercel",
@@ -2693,7 +2682,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L272",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -2705,7 +2694,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L300",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -2717,7 +2706,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L134",
+      "source_location": "L121",
       "weight": 1.0
     },
     {
@@ -2729,7 +2718,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L152",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
@@ -2741,7 +2730,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L171",
+      "source_location": "L173",
       "weight": 1.0
     },
     {
@@ -2753,7 +2742,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L175",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -2902,54 +2891,6 @@
     },
     {
       "source": "src_components_scanner_scanner_scanner",
-      "target": "src_context_rolecontext_userole",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L133",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_scanner_scanner_scanner",
-      "target": "src_lib_firestoreops_subscribetohospitalrequests",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L141",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_scanner_scanner_scanner",
-      "target": "src_classifiers_livetracker_loadmodels",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L156",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_scanner_scanner_scanner",
-      "target": "src_classifiers_livetracker_startlivetracking",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L159",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_scanner_scanner_scanner",
       "target": "src_classifiers_tfjsclassifier_classifywithedgeprimary",
       "relation": "calls",
       "_origin": "ast",
@@ -2957,7 +2898,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L288",
+      "source_location": "L196",
       "weight": 1.0
     },
     {
@@ -2969,7 +2910,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L307",
+      "source_location": "L215",
       "weight": 1.0
     },
     {
@@ -2981,7 +2922,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L377",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -2993,7 +2934,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L416",
+      "source_location": "L324",
       "weight": 1.0
     },
     {
@@ -3005,7 +2946,55 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L444",
+      "source_location": "L352",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_scanner_scanner_scanner",
+      "target": "src_context_rolecontext_userole",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/scanner/Scanner.jsx",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_scanner_scanner_scanner",
+      "target": "src_lib_firestoreops_subscribetohospitalrequests",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/scanner/Scanner.jsx",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_scanner_scanner_scanner",
+      "target": "src_classifiers_livetracker_loadmodels",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/scanner/Scanner.jsx",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_scanner_scanner_scanner",
+      "target": "src_classifiers_livetracker_startlivetracking",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/scanner/Scanner.jsx",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -6573,17 +6562,6 @@
     },
     {
       "source": "src_classifiers_livetracker",
-      "target": "src_classifiers_livetracker_startlivetracking",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L106",
-      "weight": 1.0
-    },
-    {
-      "source": "src_classifiers_livetracker",
       "target": "src_classifiers_livetracker_loadmodels",
       "relation": "contains",
       "_origin": "ast",
@@ -6601,7 +6579,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L29",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -6612,7 +6590,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L340",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -6623,7 +6601,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L35",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
@@ -6634,7 +6612,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L425",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -6645,7 +6623,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L455",
+      "source_location": "L452",
       "weight": 1.0
     },
     {
@@ -6656,7 +6634,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L92",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "src_classifiers_livetracker",
+      "target": "src_classifiers_livetracker_startlivetracking",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/classifiers/liveTracker.js",
+      "source_location": "L93",
       "weight": 1.0
     },
     {
@@ -6815,17 +6804,6 @@
     },
     {
       "source": "src_components_scanner_scanner",
-      "target": "src_components_scanner_scanner_scanner",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L113",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_scanner_scanner",
       "target": "src_components_scanner_scanner_benchmark_samples",
       "relation": "contains",
       "_origin": "ast",
@@ -6837,13 +6815,13 @@
     },
     {
       "source": "src_components_scanner_scanner",
-      "target": "src_components_scanner_scanner_demo_presets",
+      "target": "src_components_scanner_scanner_scanner",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/scanner/Scanner.jsx",
-      "source_location": "L46",
+      "source_location": "L45",
       "weight": 1.0
     },
     {
@@ -7493,7 +7471,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L323",
+      "source_location": "L320",
       "weight": 1.0
     },
     {
@@ -7505,7 +7483,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "src/classifiers/liveTracker.js",
-      "source_location": "L324",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -7522,5 +7500,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "8c8c43018869b6009873d6c57d646c0efb33111d"
+  "built_at_commit": "ddc00c1b1502823b420b881a500bb3a6d428aacf"
 }

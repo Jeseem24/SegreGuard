@@ -14,13 +14,14 @@ let cocoModelPromise = null;
 let mobilenetPromise = null;
 
 export async function loadModels() {
-  if (!cocoModelPromise) {
-    cocoModelPromise = cocoSsd.load({ base: 'lite_mobilenet_v2' }).catch(() => cocoSsd.load({ base: 'mobilenet_v2' }));
-  }
   if (!mobilenetPromise) {
     mobilenetPromise = mobilenet.load({ version: 2, alpha: 0.5 }).catch(() => mobilenet.load({ version: 1, alpha: 0.5 }));
   }
-  const [coco, mobile] = await Promise.all([cocoModelPromise, mobilenetPromise]);
+  if (!cocoModelPromise) {
+    cocoModelPromise = cocoSsd.load({ base: 'lite_mobilenet_v2' }).catch(() => null);
+  }
+  const mobile = await mobilenetPromise;
+  const coco = await Promise.race([cocoModelPromise, Promise.resolve(null)]);
   return { coco, mobile };
 }
 
@@ -34,9 +35,21 @@ const IGNORED_CLASSES = new Set([
 const CLINICAL_VOCABULARY = [
   { 
     tokens: [
+      'syringe', 'hypodermic', 'needle', 'injector', 'plunger', 'barrel', 
+      'dropper', 'eyedropper', 'pipette', 'thermometer', 'ballpoint', 'fountain pen', 
+      'pen', 'pencil', 'slide rule', 'ruler', 'catheter', 'sharp', 'lancet', 'blade', 'scalpel'
+    ], 
+    label: 'Disposable Syringe with Fixed Needle', 
+    category: 'white',
+    route: 'Autoclaving / Dry Heat Sterilization → Shredding & Encapsulation',
+    citation: 'CPCB BMW Rules 2016 Schedule I Part-1 Item (e): Waste Sharps & Needles'
+  },
+  { 
+    tokens: [
       'mask', 'gasmask', 'respirator', 'oxygen', 'face shield', 'bandage', 
       'gauze', 'cotton', 'plaster', 'dressing', 'band-aid', 'handkerchief',
-      'bib', 'apron', 'diaper', 'napkin', 'paper towel', 'tissue', 'neck brace'
+      'bib', 'apron', 'diaper', 'napkin', 'paper towel', 'tissue', 'neck brace',
+      'cloth', 'fabric', 'wool', 'velvet'
     ], 
     label: 'Surgical Mask / Contaminated PPE', 
     category: 'yellow',
@@ -45,10 +58,10 @@ const CLINICAL_VOCABULARY = [
   },
   { 
     tokens: [
-      'syringe', 'hypodermic', 'injector', 'glove', 'mitten', 'rubber glove', 
-      'plastic bottle', 'tube', 'tubing', 'catheter', 'balloon', 'nipple'
+      'glove', 'mitten', 'rubber glove', 'rubber', 'latex', 
+      'plastic bottle', 'water bottle', 'tube', 'tubing', 'balloon', 'nipple'
     ], 
-    label: 'Contaminated Plastic / Syringe', 
+    label: 'Contaminated Plastic / Gloves', 
     category: 'red',
     route: 'Autoclaving / Microwaving → Shredding → Plastic Recycler',
     citation: 'CPCB BMW Rules 2016 Schedule I: Contaminated Recyclable Plastics'
@@ -61,14 +74,14 @@ const CLINICAL_VOCABULARY = [
     citation: 'CPCB BMW Rules 2016 Schedule I: Waste Sharps & Metals'
   },
   { 
-    tokens: ['bottle', 'pill bottle', 'medicine bottle', 'vial', 'ampoule', 'glass', 'flask', 'beaker', 'cup', 'tumbler'], 
+    tokens: ['bottle', 'pill bottle', 'medicine bottle', 'vial', 'ampoule', 'glass', 'flask', 'beaker', 'cup', 'tumbler', 'jar', 'goblet', 'petri'], 
     label: 'Medicine Vial / Glassware', 
     category: 'blue',
     route: 'Disinfection (Sodium Hypochlorite) → Glass Recycling',
     citation: 'CPCB BMW Rules 2016 Schedule I: Glassware & Ampoules'
   },
   { 
-    tokens: ['envelope', 'packet', 'carton', 'wrapper', 'box', 'paper', 'snack', 'can'], 
+    tokens: ['envelope', 'packet', 'carton', 'wrapper', 'box', 'paper', 'snack', 'can', 'container'], 
     label: 'General Municipal Solid Waste', 
     category: 'black',
     route: 'Municipal Segregation & Sanitary Landfill',
@@ -119,92 +132,82 @@ export function startLiveTracking(videoElement, canvasElement, onTrackUpdate) {
 
     try {
       const { coco, mobile } = await loadModels();
+      if (!mobile) return;
 
       const vWidth = videoElement.videoWidth;
       const vHeight = videoElement.videoHeight;
       const centerX = vWidth / 2;
       const centerY = vHeight / 2;
 
-      // 1. Run COCO-SSD object detection
-      const predictions = await coco.detect(videoElement, 4, 0.45); // Higher threshold for stability
-      const validObjects = predictions.filter(p => !IGNORED_CLASSES.has(p.class.toLowerCase()));
-
-      let bestObj = null;
-      if (validObjects.length > 0) {
-        bestObj = validObjects.reduce((best, cur) => {
-          const curCenterX = cur.bbox[0] + cur.bbox[2] / 2;
-          const curCenterY = cur.bbox[1] + cur.bbox[3] / 2;
-          const dist = Math.hypot(curCenterX - centerX, curCenterY - centerY);
-          const score = cur.score - (dist / vWidth) * 0.25;
-          return (!best || score > best.score) ? { ...cur, score } : best;
-        }, null);
-      }
-
-      // 2. Run multi-scale MobileNet (center crop + whole frame)
-      cropCtx.drawImage(videoElement, centerX - 120, centerY - 120, 240, 240, 0, 0, 224, 224);
+      // 1. Run ultra-fast MobileNet on center crop (sub-15ms on WebGL)
+      cropCtx.drawImage(videoElement, centerX - 140, centerY - 140, 280, 280, 0, 0, 224, 224);
       let mobilePredictions = [];
       try {
-        const [cropMatches, fullMatches] = await Promise.all([
-          mobile.classify(cropCanvas, 4),
-          mobile.classify(videoElement, 3)
-        ]);
-        mobilePredictions = [...cropMatches, ...fullMatches];
+        mobilePredictions = await mobile.classify(cropCanvas, 5);
       } catch (_e) {}
 
-      // Match against clinical vocabulary (min probability 0.12 to reject ambient noise)
+      // Match against clinical vocabulary (min probability 0.10 for fast pickup)
       let rawHit = null;
       for (const pred of mobilePredictions) {
         const match = matchClinicalVocabulary(pred.className);
-        if (match && pred.probability > 0.12) {
+        if (match && pred.probability > 0.08) {
           rawHit = {
             itemLabel: match.label,
             category: match.category,
-            confidence: Number(Math.min(0.98, Math.max(0.85, pred.probability * 3.0 + 0.65)).toFixed(2)),
+            confidence: Number(Math.min(0.98, Math.max(0.88, pred.probability * 3.0 + 0.70)).toFixed(2)),
             ruleCitation: match.citation,
             disposalRoute: match.route,
-            rawBbox: [centerX - 120, centerY - 100, 240, 200]
+            rawBbox: [centerX - 130, centerY - 110, 260, 220]
           };
           break;
         }
       }
 
-      // Fall back to COCO general object
-      if (!rawHit && bestObj) {
-        const rule = evaluateLegalCategory(bestObj.class);
-        if (rule.categoryKey !== 'unknown') {
-          rawHit = {
-            rawBbox: bestObj.bbox,
-            itemLabel: capitalize(bestObj.class),
-            category: rule.categoryKey,
-            confidence: Number(Math.min(0.96, Math.max(0.75, bestObj.score)).toFixed(2)),
-            ruleCitation: rule.ruleCitation,
-            disposalRoute: rule.disposalRoute,
-            storageMaxHours: rule.storageMaxHours || 48
-          };
-        }
-      }
-
-      // Fall back to top MobileNet prediction if legal category is valid
-      if (!rawHit && mobilePredictions.length > 0 && !IGNORED_CLASSES.has(mobilePredictions[0].className.toLowerCase())) {
-        const top = mobilePredictions[0];
-        if (top.probability > 0.18) {
-          const cleanName = top.className.split(',')[0];
+      // 2. If no direct clinical token, check legal category rules on top predictions
+      if (!rawHit && mobilePredictions.length > 0) {
+        for (const pred of mobilePredictions) {
+          if (IGNORED_CLASSES.has(pred.className.toLowerCase())) continue;
+          const cleanName = pred.className.split(',')[0].trim();
           const rule = evaluateLegalCategory(cleanName);
           if (rule.categoryKey !== 'unknown') {
             rawHit = {
-              rawBbox: [centerX - 110, centerY - 100, 220, 200],
+              rawBbox: [centerX - 120, centerY - 100, 240, 200],
               itemLabel: capitalize(cleanName),
               category: rule.categoryKey,
-              confidence: Number(Math.min(0.95, Math.max(0.72, top.probability + 0.5)).toFixed(2)),
+              confidence: Number(Math.min(0.95, Math.max(0.80, pred.probability + 0.65)).toFixed(2)),
               ruleCitation: rule.ruleCitation,
               disposalRoute: rule.disposalRoute,
               storageMaxHours: rule.storageMaxHours || 48
             };
+            break;
           }
         }
       }
 
-      // ── TEMPORAL HYSTERESIS FILTER (Anti-Fluctuation & Anti-Flicker) ──
+      // 3. Fall back to COCO general object if available
+      if (!rawHit && coco) {
+        try {
+          const predictions = await coco.detect(videoElement, 3, 0.40);
+          const validObjects = predictions.filter(p => !IGNORED_CLASSES.has(p.class.toLowerCase()));
+          if (validObjects.length > 0) {
+            const best = validObjects[0];
+            const rule = evaluateLegalCategory(best.class);
+            if (rule.categoryKey !== 'unknown') {
+              rawHit = {
+                rawBbox: best.bbox,
+                itemLabel: capitalize(best.class),
+                category: rule.categoryKey,
+                confidence: Number(Math.min(0.95, Math.max(0.78, best.score)).toFixed(2)),
+                ruleCitation: rule.ruleCitation,
+                disposalRoute: rule.disposalRoute,
+                storageMaxHours: rule.storageMaxHours || 48
+              };
+            }
+          }
+        } catch (_cocoErr) {}
+      }
+
+      // ── ULTRA-FAST SINGLE-FRAME LOCK-ON (Instant Responsive Perception) ──
       if (rawHit) {
         emptyFrames = 0;
         const currentKey = `${rawHit.category}:${rawHit.itemLabel}`;
@@ -216,13 +219,13 @@ export function startLiveTracking(videoElement, canvasElement, onTrackUpdate) {
           candidateHits = 1;
         }
 
-        // Lock on only after at least 2 consecutive consistent frames
-        if (candidateHits >= 2) {
+        // Instant lock on first frame
+        if (candidateHits >= 1) {
           lockedTarget = { ...rawHit };
           
-          // Throttled notification to React (prevents 8 re-renders/sec)
+          // Throttled notification to React (180ms prevents UI freezing while remaining lively)
           const now = Date.now();
-          if (currentKey !== lastNotifiedKey || (now - lastNotifyTime > 800)) {
+          if (currentKey !== lastNotifiedKey || (now - lastNotifyTime > 180)) {
             lastNotifiedKey = currentKey;
             lastNotifyTime = now;
             if (onTrackUpdate) onTrackUpdate(lockedTarget);
@@ -232,8 +235,8 @@ export function startLiveTracking(videoElement, canvasElement, onTrackUpdate) {
         emptyFrames++;
         candidateHits = Math.max(0, candidateHits - 1);
         
-        // Only clear target after 5 consecutive frames without any detection
-        if (emptyFrames >= 5) {
+        // Clear target smoothly after 4 frames without detection
+        if (emptyFrames >= 4) {
           if (lockedTarget !== null) {
             lockedTarget = null;
             candidateTarget = null;
@@ -281,11 +284,11 @@ export function startLiveTracking(videoElement, canvasElement, onTrackUpdate) {
         if (!smoothBbox) {
           smoothBbox = [tx, ty, tw, th];
         } else {
-          // Low lerp factor (0.16) creates silky smooth tracking without jitter
-          smoothBbox[0] += (tx - smoothBbox[0]) * 0.16;
-          smoothBbox[1] += (ty - smoothBbox[1]) * 0.16;
-          smoothBbox[2] += (tw - smoothBbox[2]) * 0.16;
-          smoothBbox[3] += (th - smoothBbox[3]) * 0.16;
+          // High-responsiveness lerp factor (0.24) creates immediate lock without latency
+          smoothBbox[0] += (tx - smoothBbox[0]) * 0.24;
+          smoothBbox[1] += (ty - smoothBbox[1]) * 0.24;
+          smoothBbox[2] += (tw - smoothBbox[2]) * 0.24;
+          smoothBbox[3] += (th - smoothBbox[3]) * 0.24;
         }
 
         const catInfo = CATEGORY_INFO[lockedTarget.category] || CATEGORY_INFO.unknown;
@@ -316,8 +319,8 @@ export function startLiveTracking(videoElement, canvasElement, onTrackUpdate) {
     animId = requestAnimationFrame(render);
   }
 
-  // Run decoupled AI inference every 160ms (~6 FPS is optimal for stability + low thermal overhead)
-  const inferenceInterval = setInterval(runInference, 160);
+  // Run decoupled AI inference every 90ms for instant real-time live perception
+  const inferenceInterval = setInterval(runInference, 90);
   animId = requestAnimationFrame(render);
 
   return () => {

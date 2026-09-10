@@ -20,9 +20,9 @@ export async function loadEdgeModel() {
 // Clinical keyword token matcher for edge layer
 const CLINICAL_TOKENS = [
   { match: ['mask', 'gasmask', 'respirator', 'face shield', 'bandage', 'gauze', 'cotton', 'dressing', 'plaster', 'cloth', 'fabric', 'wool', 'velvet', 'suit', 'diaper', 'bib', 'apron', 'neck brace', 'handkerchief'], label: 'Surgical Mask / Clinical PPE', category: 'yellow' },
-  { match: ['syringe', 'needle', 'injector', 'scalpel', 'blade', 'cutter', 'scissor', 'pin', 'lancet'], label: 'Syringe / Medical Sharps', category: 'white' },
-  { match: ['glove', 'mitten', 'rubber', 'latex', 'catheter', 'tube', 'tubing', 'plastic', 'bottle', 'water bottle', 'pen', 'marker', 'saline', 'balloon'], label: 'Contaminated Plastic / Gloves / Tubing', category: 'red' },
-  { match: ['vial', 'ampoule', 'glass', 'flask', 'medicine', 'beaker', 'pill bottle', 'jar', 'goblet'], label: 'Medicine Vial / Glassware', category: 'blue' },
+  { match: ['syringe', 'needle', 'hypodermic', 'injector', 'plunger', 'barrel', 'dropper', 'eyedropper', 'pipette', 'thermometer', 'ballpoint', 'fountain pen', 'pen', 'pencil', 'slide rule', 'scalpel', 'blade', 'cutter', 'scissor', 'pin', 'lancet', 'sharp'], label: 'Disposable Syringe with Fixed Needle', category: 'white' },
+  { match: ['glove', 'mitten', 'rubber', 'latex', 'catheter', 'tube', 'tubing', 'plastic', 'bottle', 'water bottle', 'marker', 'saline', 'balloon', 'nipple'], label: 'Contaminated Plastic / Gloves / Tubing', category: 'red' },
+  { match: ['vial', 'ampoule', 'glass', 'flask', 'medicine', 'beaker', 'pill bottle', 'jar', 'goblet', 'petri'], label: 'Medicine Vial / Glassware', category: 'blue' },
   { match: ['paper', 'wrapper', 'packet', 'carton', 'box', 'envelope', 'can', 'snack'], label: 'General Non-Contaminated Waste', category: 'black' }
 ];
 

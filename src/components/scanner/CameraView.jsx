@@ -16,15 +16,20 @@ export default function CameraView({ videoRef, canvasRef, onReady }) {
         return;
       }
 
+      const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+      
+      const fastConstraints = isMobile
+        ? { video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 }, height: { ideal: 480 } }, audio: false }
+        : { video: { width: { ideal: 640 }, height: { ideal: 480 } }, audio: false };
+
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'environment', // prefer rear camera on mobile
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          },
-          audio: false
-        });
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(fastConstraints);
+        } catch (_primaryErr) {
+          // Instant fallback to default unconstrained video stream
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
 
         if (cancelled) {
           stream.getTracks().forEach(t => t.stop());
@@ -35,11 +40,20 @@ export default function CameraView({ videoRef, canvasRef, onReady }) {
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current.play();
+
+          const handleReady = () => {
+            if (cancelled) return;
+            videoRef.current?.play().catch(() => {});
             setCameraState('granted');
             onReady && onReady();
           };
+
+          if (videoRef.current.readyState >= 2) {
+            handleReady();
+          } else {
+            videoRef.current.onloadedmetadata = handleReady;
+            videoRef.current.oncanplay = handleReady;
+          }
         }
       } catch (err) {
         if (!cancelled) {
