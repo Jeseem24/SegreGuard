@@ -1,16 +1,16 @@
 # Graph Report - segreguard  (2026-09-10)
 
 ## Corpus Check
-- 29 files · ~29,128 words
+- 29 files · ~29,343 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 227 nodes · 422 edges · 12 communities (11 shown, 1 thin omitted)
+- 227 nodes · 421 edges · 12 communities (11 shown, 1 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8c8c4301`
+- Built from commit: `38cf40ec`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -111,7 +111,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `$schema`, `oxc`, `react/rules-of-hooks` to the rest of the system?**
   _95 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `firestoreOps.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.1414141414141414 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1404040404040404 - nodes in this community are weakly interconnected._
 - **Should `Scanner.jsx` be split into smaller, more focused modules?**
   _Cohesion score 0.10336817653890824 - nodes in this community are weakly interconnected._
 - **Should `SIH 2026 — PS 26115 — Internal Project Documentation` be split into smaller, more focused modules?**

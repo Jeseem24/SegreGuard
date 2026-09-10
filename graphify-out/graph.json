@@ -26,7 +26,7 @@
       "file_type": "code",
       "norm_label": "dashboard()",
       "source_file": "src/components/dashboard/Dashboard.jsx",
-      "source_location": "L37"
+      "source_location": "L38"
     },
     {
       "id": "src_lib_firestoreops_acceptlogisticsrequest",
@@ -38,7 +38,7 @@
       "file_type": "code",
       "norm_label": "acceptlogisticsrequest()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1119"
+      "source_location": "L1184"
     },
     {
       "id": "src_lib_firestoreops_addwasteevent",
@@ -50,7 +50,7 @@
       "file_type": "code",
       "norm_label": "addwasteevent()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L562"
+      "source_location": "L647"
     },
     {
       "id": "src_lib_firestoreops_admindirectrequest",
@@ -62,7 +62,7 @@
       "file_type": "code",
       "norm_label": "admindirectrequest()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1055"
+      "source_location": "L1120"
     },
     {
       "id": "src_lib_firestoreops_approveanddispatchtologistics",
@@ -74,7 +74,7 @@
       "file_type": "code",
       "norm_label": "approveanddispatchtologistics()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1021"
+      "source_location": "L1086"
     },
     {
       "id": "src_lib_firestoreops_attachlocalbinslistener",
@@ -86,7 +86,7 @@
       "file_type": "code",
       "norm_label": "attachlocalbinslistener()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L894"
+      "source_location": "L984"
     },
     {
       "id": "src_lib_firestoreops_attachlocaleventslistener",
@@ -98,7 +98,7 @@
       "file_type": "code",
       "norm_label": "attachlocaleventslistener()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L640"
+      "source_location": "L730"
     },
     {
       "id": "src_lib_firestoreops_attachlocaltaskslistener",
@@ -110,7 +110,7 @@
       "file_type": "code",
       "norm_label": "attachlocaltaskslistener()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L744"
+      "source_location": "L834"
     },
     {
       "id": "src_lib_firestoreops_broadcast",
@@ -122,7 +122,7 @@
       "file_type": "code",
       "norm_label": "broadcast()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L117"
+      "source_location": "L135"
     },
     {
       "id": "src_lib_firestoreops_broadcastalert",
@@ -134,7 +134,7 @@
       "file_type": "code",
       "norm_label": "broadcastalert()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L127"
+      "source_location": "L147"
     },
     {
       "id": "src_lib_firestoreops_calculateslastatus",
@@ -146,7 +146,7 @@
       "file_type": "code",
       "norm_label": "calculateslastatus()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L931"
+      "source_location": "L996"
     },
     {
       "id": "src_lib_firestoreops_completelogisticsrequest",
@@ -158,7 +158,7 @@
       "file_type": "code",
       "norm_label": "completelogisticsrequest()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1189"
+      "source_location": "L1254"
     },
     {
       "id": "src_lib_firestoreops_getlocalbins",
@@ -170,7 +170,7 @@
       "file_type": "code",
       "norm_label": "getlocalbins()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L189"
+      "source_location": "L250"
     },
     {
       "id": "src_lib_firestoreops_getlocalevents",
@@ -182,7 +182,7 @@
       "file_type": "code",
       "norm_label": "getlocalevents()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L161"
+      "source_location": "L222"
     },
     {
       "id": "src_lib_firestoreops_getlocalrequests",
@@ -194,7 +194,7 @@
       "file_type": "code",
       "norm_label": "getlocalrequests()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L147"
+      "source_location": "L208"
     },
     {
       "id": "src_lib_firestoreops_getlocaltasks",
@@ -206,7 +206,7 @@
       "file_type": "code",
       "norm_label": "getlocaltasks()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L175"
+      "source_location": "L236"
     },
     {
       "id": "src_lib_firestoreops_isfirebaseavailable",
@@ -230,7 +230,7 @@
       "file_type": "code",
       "norm_label": "markbincollected()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L807"
+      "source_location": "L897"
     },
     {
       "id": "src_lib_firestoreops_marktaskcollected",
@@ -242,7 +242,7 @@
       "file_type": "code",
       "norm_label": "marktaskcollected()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L756"
+      "source_location": "L846"
     },
     {
       "id": "src_lib_firestoreops_markwardcollected",
@@ -254,7 +254,7 @@
       "file_type": "code",
       "norm_label": "markwardcollected()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L840"
+      "source_location": "L930"
     },
     {
       "id": "src_lib_firestoreops_notifylisteners",
@@ -278,7 +278,7 @@
       "file_type": "code",
       "norm_label": "requestpickup()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L654"
+      "source_location": "L744"
     },
     {
       "id": "src_lib_firestoreops_requestpickupfromnurse",
@@ -290,7 +290,7 @@
       "file_type": "code",
       "norm_label": "requestpickupfromnurse()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L956"
+      "source_location": "L1021"
     },
     {
       "id": "src_lib_firestoreops_schedulehospitalpickup",
@@ -302,7 +302,7 @@
       "file_type": "code",
       "norm_label": "schedulehospitalpickup()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1138"
+      "source_location": "L1203"
     },
     {
       "id": "src_lib_firestoreops_seeddata",
@@ -314,7 +314,7 @@
       "file_type": "code",
       "norm_label": "seeddata()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L366"
+      "source_location": "L427"
     },
     {
       "id": "src_lib_firestoreops_setlocalbins",
@@ -326,7 +326,7 @@
       "file_type": "code",
       "norm_label": "setlocalbins()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L198"
+      "source_location": "L259"
     },
     {
       "id": "src_lib_firestoreops_setlocalevents",
@@ -338,7 +338,7 @@
       "file_type": "code",
       "norm_label": "setlocalevents()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L170"
+      "source_location": "L231"
     },
     {
       "id": "src_lib_firestoreops_setlocalrequests",
@@ -350,7 +350,7 @@
       "file_type": "code",
       "norm_label": "setlocalrequests()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L156"
+      "source_location": "L217"
     },
     {
       "id": "src_lib_firestoreops_setlocaltasks",
@@ -362,7 +362,7 @@
       "file_type": "code",
       "norm_label": "setlocaltasks()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L184"
+      "source_location": "L245"
     },
     {
       "id": "src_lib_firestoreops_subscribetoallcollectiontasks",
@@ -374,7 +374,7 @@
       "file_type": "code",
       "norm_label": "subscribetoallcollectiontasks()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L720"
+      "source_location": "L810"
     },
     {
       "id": "src_lib_firestoreops_subscribetobins",
@@ -386,7 +386,7 @@
       "file_type": "code",
       "norm_label": "subscribetobins()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L870"
+      "source_location": "L960"
     },
     {
       "id": "src_lib_firestoreops_subscribetocollectiontasks",
@@ -398,7 +398,7 @@
       "file_type": "code",
       "norm_label": "subscribetocollectiontasks()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L696"
+      "source_location": "L786"
     },
     {
       "id": "src_lib_firestoreops_subscribetohospitalrequests",
@@ -410,7 +410,7 @@
       "file_type": "code",
       "norm_label": "subscribetohospitalrequests()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1252"
+      "source_location": "L1317"
     },
     {
       "id": "src_lib_firestoreops_subscribetolivealerts",
@@ -422,7 +422,7 @@
       "file_type": "code",
       "norm_label": "subscribetolivealerts()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L139"
+      "source_location": "L187"
     },
     {
       "id": "src_lib_firestoreops_subscribetopickuprequests",
@@ -434,7 +434,7 @@
       "file_type": "code",
       "norm_label": "subscribetopickuprequests()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1237"
+      "source_location": "L1302"
     },
     {
       "id": "src_lib_firestoreops_subscribetowasteevents",
@@ -446,7 +446,7 @@
       "file_type": "code",
       "norm_label": "subscribetowasteevents()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L610"
+      "source_location": "L700"
     },
     {
       "id": "src_lib_firestoreops_updatebinfill",
@@ -458,7 +458,7 @@
       "file_type": "code",
       "norm_label": "updatebinfill()",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L905"
+      "source_location": "L627"
     },
     {
       "id": "src_classifiers_geminiclassifier_captureoptimizedframebase64",
@@ -886,7 +886,7 @@
       "file_type": "code",
       "norm_label": "cbwtf_facility",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L352"
+      "source_location": "L413"
     },
     {
       "id": "src_lib_firestoreops_hospital_wards",
@@ -897,7 +897,7 @@
       "file_type": "code",
       "norm_label": "hospital_wards",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L363"
+      "source_location": "L424"
     },
     {
       "id": "src_lib_firestoreops_hospitals",
@@ -908,7 +908,7 @@
       "file_type": "code",
       "norm_label": "hospitals",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L204"
+      "source_location": "L265"
     },
     {
       "id": "src_lib_firestoreops_listeners",
@@ -2801,7 +2801,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/dashboard/Dashboard.jsx",
-      "source_location": "L112",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -2813,7 +2813,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/dashboard/Dashboard.jsx",
-      "source_location": "L52",
+      "source_location": "L53",
       "weight": 1.0
     },
     {
@@ -2825,7 +2825,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/dashboard/Dashboard.jsx",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -2837,7 +2837,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/dashboard/Dashboard.jsx",
-      "source_location": "L54",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -2849,7 +2849,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/dashboard/Dashboard.jsx",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -2861,7 +2861,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/dashboard/Dashboard.jsx",
-      "source_location": "L76",
+      "source_location": "L77",
       "weight": 1.0
     },
     {
@@ -2873,7 +2873,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/dashboard/Dashboard.jsx",
-      "source_location": "L86",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -3041,7 +3041,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1120",
+      "source_location": "L1185",
       "weight": 1.0
     },
     {
@@ -3053,7 +3053,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1132",
+      "source_location": "L1197",
       "weight": 1.0
     },
     {
@@ -3065,7 +3065,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L571",
+      "source_location": "L656",
       "weight": 1.0
     },
     {
@@ -3077,7 +3077,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L572",
+      "source_location": "L657",
       "weight": 1.0
     },
     {
@@ -3089,7 +3089,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L575",
+      "source_location": "L661",
       "weight": 1.0
     },
     {
@@ -3101,7 +3101,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L580",
+      "source_location": "L670",
       "weight": 1.0
     },
     {
@@ -3113,7 +3113,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L593",
+      "source_location": "L683",
       "weight": 1.0
     },
     {
@@ -3125,7 +3125,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1064",
+      "source_location": "L1129",
       "weight": 1.0
     },
     {
@@ -3137,7 +3137,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1101",
+      "source_location": "L1166",
       "weight": 1.0
     },
     {
@@ -3149,7 +3149,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1102",
+      "source_location": "L1167",
       "weight": 1.0
     },
     {
@@ -3161,7 +3161,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1104",
+      "source_location": "L1169",
       "weight": 1.0
     },
     {
@@ -3173,7 +3173,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1022",
+      "source_location": "L1087",
       "weight": 1.0
     },
     {
@@ -3185,7 +3185,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1041",
+      "source_location": "L1106",
       "weight": 1.0
     },
     {
@@ -3197,7 +3197,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1043",
+      "source_location": "L1108",
       "weight": 1.0
     },
     {
@@ -3209,7 +3209,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L899",
+      "source_location": "L989",
       "weight": 1.0
     },
     {
@@ -3221,7 +3221,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L647",
+      "source_location": "L737",
       "weight": 1.0
     },
     {
@@ -3233,7 +3233,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L750",
+      "source_location": "L840",
       "weight": 1.0
     },
     {
@@ -3245,7 +3245,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L118",
+      "source_location": "L136",
       "weight": 1.0
     },
     {
@@ -3257,7 +3257,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1190",
+      "source_location": "L1255",
       "weight": 1.0
     },
     {
@@ -3269,7 +3269,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1203",
+      "source_location": "L1268",
       "weight": 1.0
     },
     {
@@ -3281,7 +3281,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1208",
+      "source_location": "L1273",
       "weight": 1.0
     },
     {
@@ -3293,7 +3293,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1222",
+      "source_location": "L1287",
       "weight": 1.0
     },
     {
@@ -3305,7 +3305,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1225",
+      "source_location": "L1290",
       "weight": 1.0
     },
     {
@@ -3317,7 +3317,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L809",
+      "source_location": "L899",
       "weight": 1.0
     },
     {
@@ -3329,7 +3329,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L824",
+      "source_location": "L914",
       "weight": 1.0
     },
     {
@@ -3341,7 +3341,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L827",
+      "source_location": "L917",
       "weight": 1.0
     },
     {
@@ -3353,7 +3353,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L834",
+      "source_location": "L924",
       "weight": 1.0
     },
     {
@@ -3365,7 +3365,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L757",
+      "source_location": "L847",
       "weight": 1.0
     },
     {
@@ -3377,7 +3377,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L766",
+      "source_location": "L856",
       "weight": 1.0
     },
     {
@@ -3389,7 +3389,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L770",
+      "source_location": "L860",
       "weight": 1.0
     },
     {
@@ -3401,7 +3401,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L784",
+      "source_location": "L874",
       "weight": 1.0
     },
     {
@@ -3413,7 +3413,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L788",
+      "source_location": "L878",
       "weight": 1.0
     },
     {
@@ -3425,7 +3425,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L842",
+      "source_location": "L932",
       "weight": 1.0
     },
     {
@@ -3437,7 +3437,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L856",
+      "source_location": "L946",
       "weight": 1.0
     },
     {
@@ -3449,7 +3449,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L859",
+      "source_location": "L949",
       "weight": 1.0
     },
     {
@@ -3461,7 +3461,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L866",
+      "source_location": "L956",
       "weight": 1.0
     },
     {
@@ -3521,7 +3521,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L675",
+      "source_location": "L765",
       "weight": 1.0
     },
     {
@@ -3533,7 +3533,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L676",
+      "source_location": "L766",
       "weight": 1.0
     },
     {
@@ -3545,7 +3545,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L679",
+      "source_location": "L769",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_requestpickupfromnurse",
+      "target": "src_lib_firestoreops_getlocalbins",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L1033",
       "weight": 1.0
     },
     {
@@ -3557,7 +3569,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1002",
+      "source_location": "L1067",
       "weight": 1.0
     },
     {
@@ -3569,7 +3581,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1003",
+      "source_location": "L1068",
       "weight": 1.0
     },
     {
@@ -3581,19 +3593,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1005",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_requestpickupfromnurse",
-      "target": "src_lib_firestoreops_getlocalbins",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L968",
+      "source_location": "L1070",
       "weight": 1.0
     },
     {
@@ -3605,239 +3605,11 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1144",
+      "source_location": "L1209",
       "weight": 1.0
     },
     {
       "source": "src_lib_firestoreops_schedulehospitalpickup",
-      "target": "src_lib_firestoreops_getlocalrequests",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1178",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_schedulehospitalpickup",
-      "target": "src_lib_firestoreops_setlocalrequests",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1179",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_seeddata",
-      "target": "src_lib_firestoreops_getlocalbins",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L367",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_seeddata",
-      "target": "src_lib_firestoreops_getlocalrequests",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L368",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_seeddata",
-      "target": "src_lib_firestoreops_setlocalbins",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L555",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_seeddata",
-      "target": "src_lib_firestoreops_setlocaltasks",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L556",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_seeddata",
-      "target": "src_lib_firestoreops_setlocalevents",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L557",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_seeddata",
-      "target": "src_lib_firestoreops_setlocalrequests",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L558",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_setlocalbins",
-      "target": "src_lib_firestoreops_broadcast",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L200",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_setlocalevents",
-      "target": "src_lib_firestoreops_broadcast",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L172",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_setlocalrequests",
-      "target": "src_lib_firestoreops_broadcast",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L158",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_setlocaltasks",
-      "target": "src_lib_firestoreops_broadcast",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L186",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_subscribetoallcollectiontasks",
-      "target": "src_lib_firestoreops_attachlocaltaskslistener",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L721",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_subscribetoallcollectiontasks",
-      "target": "src_lib_firestoreops_isfirebaseavailable",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L723",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_subscribetobins",
-      "target": "src_lib_firestoreops_attachlocalbinslistener",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L871",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_subscribetobins",
-      "target": "src_lib_firestoreops_isfirebaseavailable",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L873",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_subscribetocollectiontasks",
-      "target": "src_lib_firestoreops_attachlocaltaskslistener",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L697",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_subscribetocollectiontasks",
-      "target": "src_lib_firestoreops_isfirebaseavailable",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L699",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_subscribetohospitalrequests",
-      "target": "src_lib_firestoreops_getlocalrequests",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1258",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_subscribetopickuprequests",
       "target": "src_lib_firestoreops_getlocalrequests",
       "relation": "calls",
       "_origin": "ast",
@@ -3849,6 +3621,234 @@
       "weight": 1.0
     },
     {
+      "source": "src_lib_firestoreops_schedulehospitalpickup",
+      "target": "src_lib_firestoreops_setlocalrequests",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L1244",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_seeddata",
+      "target": "src_lib_firestoreops_getlocalbins",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L428",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_seeddata",
+      "target": "src_lib_firestoreops_getlocalrequests",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L429",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_seeddata",
+      "target": "src_lib_firestoreops_setlocalbins",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L616",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_seeddata",
+      "target": "src_lib_firestoreops_setlocaltasks",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L617",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_seeddata",
+      "target": "src_lib_firestoreops_setlocalevents",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L618",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_seeddata",
+      "target": "src_lib_firestoreops_setlocalrequests",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L619",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_setlocalbins",
+      "target": "src_lib_firestoreops_broadcast",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L261",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_setlocalevents",
+      "target": "src_lib_firestoreops_broadcast",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L233",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_setlocalrequests",
+      "target": "src_lib_firestoreops_broadcast",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L219",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_setlocaltasks",
+      "target": "src_lib_firestoreops_broadcast",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L247",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_subscribetoallcollectiontasks",
+      "target": "src_lib_firestoreops_attachlocaltaskslistener",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L811",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_subscribetoallcollectiontasks",
+      "target": "src_lib_firestoreops_isfirebaseavailable",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L813",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_subscribetobins",
+      "target": "src_lib_firestoreops_attachlocalbinslistener",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L961",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_subscribetobins",
+      "target": "src_lib_firestoreops_isfirebaseavailable",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L963",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_subscribetocollectiontasks",
+      "target": "src_lib_firestoreops_attachlocaltaskslistener",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L787",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_subscribetocollectiontasks",
+      "target": "src_lib_firestoreops_isfirebaseavailable",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L789",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_subscribetohospitalrequests",
+      "target": "src_lib_firestoreops_getlocalrequests",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L1323",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops_subscribetopickuprequests",
+      "target": "src_lib_firestoreops_getlocalrequests",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L1308",
+      "weight": 1.0
+    },
+    {
       "source": "src_lib_firestoreops_subscribetowasteevents",
       "target": "src_lib_firestoreops_attachlocaleventslistener",
       "relation": "calls",
@@ -3857,7 +3857,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L612",
+      "source_location": "L702",
       "weight": 1.0
     },
     {
@@ -3869,7 +3869,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L614",
+      "source_location": "L704",
       "weight": 1.0
     },
     {
@@ -3881,7 +3881,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L906",
+      "source_location": "L628",
       "weight": 1.0
     },
     {
@@ -3893,19 +3893,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L923",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops_updatebinfill",
-      "target": "src_lib_firestoreops_requestpickup",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L926",
+      "source_location": "L644",
       "weight": 1.0
     },
     {
@@ -6766,7 +6754,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/dashboard/Dashboard.jsx",
-      "source_location": "L37",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -6980,7 +6968,7 @@
     },
     {
       "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_approveanddispatchtologistics",
+      "target": "src_lib_firestoreops_requestpickupfromnurse",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -6991,13 +6979,24 @@
     },
     {
       "source": "src_lib_firestoreops",
+      "target": "src_lib_firestoreops_approveanddispatchtologistics",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L1086",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops",
       "target": "src_lib_firestoreops_admindirectrequest",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1055",
+      "source_location": "L1120",
       "weight": 1.0
     },
     {
@@ -7008,7 +7007,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1119",
+      "source_location": "L1184",
       "weight": 1.0
     },
     {
@@ -7019,18 +7018,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1138",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_broadcast",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L117",
+      "source_location": "L1203",
       "weight": 1.0
     },
     {
@@ -7041,7 +7029,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1189",
+      "source_location": "L1254",
       "weight": 1.0
     },
     {
@@ -7052,7 +7040,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1237",
+      "source_location": "L1302",
       "weight": 1.0
     },
     {
@@ -7063,7 +7051,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L1252",
+      "source_location": "L1317",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops",
+      "target": "src_lib_firestoreops_broadcast",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -7074,7 +7073,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L127",
+      "source_location": "L147",
       "weight": 1.0
     },
     {
@@ -7085,7 +7084,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L139",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -7096,7 +7095,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L147",
+      "source_location": "L208",
       "weight": 1.0
     },
     {
@@ -7107,7 +7106,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L156",
+      "source_location": "L217",
       "weight": 1.0
     },
     {
@@ -7118,7 +7117,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L161",
+      "source_location": "L222",
       "weight": 1.0
     },
     {
@@ -7129,7 +7128,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L170",
+      "source_location": "L231",
       "weight": 1.0
     },
     {
@@ -7140,51 +7139,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L175",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_setlocaltasks",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L184",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_getlocalbins",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L189",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_setlocalbins",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L198",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_hospitals",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L204",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -7200,13 +7155,57 @@
     },
     {
       "source": "src_lib_firestoreops",
+      "target": "src_lib_firestoreops_setlocaltasks",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L245",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops",
+      "target": "src_lib_firestoreops_getlocalbins",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L250",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops",
+      "target": "src_lib_firestoreops_setlocalbins",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L259",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops",
+      "target": "src_lib_firestoreops_hospitals",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops",
       "target": "src_lib_firestoreops_cbwtf_facility",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L352",
+      "source_location": "L413",
       "weight": 1.0
     },
     {
@@ -7217,7 +7216,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L363",
+      "source_location": "L424",
       "weight": 1.0
     },
     {
@@ -7228,7 +7227,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L366",
+      "source_location": "L427",
       "weight": 1.0
     },
     {
@@ -7244,17 +7243,6 @@
     },
     {
       "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_addwasteevent",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L562",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops",
       "target": "src_lib_firestoreops_listeners",
       "relation": "contains",
       "_origin": "ast",
@@ -7266,24 +7254,24 @@
     },
     {
       "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_subscribetowasteevents",
+      "target": "src_lib_firestoreops_updatebinfill",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L610",
+      "source_location": "L627",
       "weight": 1.0
     },
     {
       "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_attachlocaleventslistener",
+      "target": "src_lib_firestoreops_addwasteevent",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L640",
+      "source_location": "L647",
       "weight": 1.0
     },
     {
@@ -7299,40 +7287,29 @@
     },
     {
       "source": "src_lib_firestoreops",
+      "target": "src_lib_firestoreops_subscribetowasteevents",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L700",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops",
+      "target": "src_lib_firestoreops_attachlocaleventslistener",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L730",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops",
       "target": "src_lib_firestoreops_requestpickup",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L654",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_subscribetocollectiontasks",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L696",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_subscribetoallcollectiontasks",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L720",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_attachlocaltaskslistener",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -7343,13 +7320,46 @@
     },
     {
       "source": "src_lib_firestoreops",
+      "target": "src_lib_firestoreops_subscribetocollectiontasks",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L786",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops",
+      "target": "src_lib_firestoreops_subscribetoallcollectiontasks",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L810",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops",
+      "target": "src_lib_firestoreops_attachlocaltaskslistener",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/firestoreOps.js",
+      "source_location": "L834",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_firestoreops",
       "target": "src_lib_firestoreops_marktaskcollected",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L756",
+      "source_location": "L846",
       "weight": 1.0
     },
     {
@@ -7360,7 +7370,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L807",
+      "source_location": "L897",
       "weight": 1.0
     },
     {
@@ -7371,7 +7381,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L840",
+      "source_location": "L930",
       "weight": 1.0
     },
     {
@@ -7382,7 +7392,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L870",
+      "source_location": "L960",
       "weight": 1.0
     },
     {
@@ -7393,18 +7403,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L894",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_updatebinfill",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L905",
+      "source_location": "L984",
       "weight": 1.0
     },
     {
@@ -7415,18 +7414,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L931",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_firestoreops",
-      "target": "src_lib_firestoreops_requestpickupfromnurse",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/firestoreOps.js",
-      "source_location": "L956",
+      "source_location": "L996",
       "weight": 1.0
     },
     {
@@ -7522,5 +7510,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "8c8c43018869b6009873d6c57d646c0efb33111d"
+  "built_at_commit": "38cf40ec09de61a0bd7fe563ee6faa1c1f9bd397"
 }

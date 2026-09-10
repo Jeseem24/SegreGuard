@@ -60,9 +60,9 @@
     "semantic_hash": ""
   },
   "src/components/dashboard/Dashboard.jsx": {
-    "mtime": 1789013773.3069384,
-    "seen": 1789013938.7233894,
-    "ast_hash": "af7b6b22a3087fe6dcb5d27edecc785a",
+    "mtime": 1789014990.4199836,
+    "seen": 1789015107.9994085,
+    "ast_hash": "5b2d8325934ff01feb21ad12ccc9703e",
     "semantic_hash": ""
   },
   "src/components/log/LogList.jsx": {
@@ -132,9 +132,9 @@
     "semantic_hash": ""
   },
   "src/lib/firestoreOps.js": {
-    "mtime": 1789013720.3038573,
-    "seen": 1789013938.7234302,
-    "ast_hash": "094a72fd9aacf56e1041e582ecae07bc",
+    "mtime": 1789015062.1042802,
+    "seen": 1789015107.9994655,
+    "ast_hash": "e9a896134af4aafacfc468796679d2c4",
     "semantic_hash": ""
   },
   "src/main.jsx": {

@@ -1,16 +1,16 @@
 # Graph Report - segreguard  (2026-09-10)
 
 ## Corpus Check
-- 29 files · ~28,333 words
+- 29 files · ~29,128 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 226 nodes · 421 edges · 12 communities (11 shown, 1 thin omitted)
+- 227 nodes · 422 edges · 12 communities (11 shown, 1 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ddc00c1b`
+- Built from commit: `8c8c4301`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -42,8 +42,8 @@
 ## Surprising Connections (you probably didn't know these)
 - `AppContent()` --calls--> `seedData()`  [EXTRACTED]
   src/App.jsx → src/lib/firestoreOps.js
-- `Dashboard()` --calls--> `subscribeToWasteEvents()`  [EXTRACTED]
-  src/components/dashboard/Dashboard.jsx → src/lib/firestoreOps.js
+- `LogList()` --calls--> `subscribeToWasteEvents()`  [EXTRACTED]
+  src/components/log/LogList.jsx → src/lib/firestoreOps.js
 - `Scanner()` --calls--> `useRole()`  [EXTRACTED]
   src/components/scanner/Scanner.jsx → src/context/RoleContext.jsx
 - `Scanner()` --calls--> `addWasteEvent()`  [EXTRACTED]
@@ -58,11 +58,11 @@
 
 ### Community 0 - "firestoreOps.js"
 Cohesion: 0.14
-Nodes (41): Dashboard(), acceptLogisticsRequest(), addWasteEvent(), adminDirectRequest(), approveAndDispatchToLogistics(), attachLocalBinsListener(), attachLocalEventsListener(), attachLocalTasksListener() (+33 more)
+Nodes (42): Dashboard(), acceptLogisticsRequest(), addWasteEvent(), adminDirectRequest(), approveAndDispatchToLogistics(), attachLocalBinsListener(), attachLocalEventsListener(), attachLocalTasksListener() (+34 more)
 
 ### Community 1 - "Scanner.jsx"
-Cohesion: 0.11
-Nodes (29): CATEGORY_INFO, CONFIDENCE_THRESHOLD, captureOptimizedFrameBase64(), classifyWithGemini(), DEFAULT_GEMINI_API_KEY, GEMINI_MODELS, capitalize(), CLINICAL_VOCABULARY (+21 more)
+Cohesion: 0.10
+Nodes (30): CATEGORY_INFO, CONFIDENCE_THRESHOLD, captureOptimizedFrameBase64(), classifyWithGemini(), DEFAULT_GEMINI_API_KEY, GEMINI_MODELS, capitalize(), CLINICAL_VOCABULARY (+22 more)
 
 ### Community 2 - "SIH 2026 — PS 26115 — Internal Project Documentation"
 Cohesion: 0.06
@@ -73,8 +73,8 @@ Cohesion: 0.08
 Nodes (24): 0. Kickoff prompt (paste this first, then paste the rest of the doc as reference), 10. What this spec deliberately leaves out, 1. Product summary (context for the agent), 2. Software process model, 3. Roles & permissions, 4. System architecture, 5. Data model (Firestore collections), 6. Cloud Functions (server-side logic) (+16 more)
 
 ### Community 4 - "App.jsx"
-Cohesion: 0.16
-Nodes (14): react, App(), AppContent(), LogList(), ErrorBoundary, RolePicker(), TAB_CONFIG, TabBar() (+6 more)
+Cohesion: 0.17
+Nodes (13): react, App(), AppContent(), LogList(), ErrorBoundary, RolePicker(), TAB_CONFIG, TabBar() (+5 more)
 
 ### Community 5 - "package.json"
 Cohesion: 0.10
@@ -97,7 +97,7 @@ Cohesion: 0.50
 Nodes (3): app, db, firebaseConfig
 
 ## Knowledge Gaps
-- **94 isolated node(s):** `$schema`, `oxc`, `react/rules-of-hooks`, `warn`, `name` (+89 more)
+- **95 isolated node(s):** `$schema`, `oxc`, `react/rules-of-hooks`, `warn`, `name` (+90 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **1 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -109,11 +109,11 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `plugins` connect `.oxlintrc.json` to `App.jsx`?**
   _High betweenness centrality (0.032) - this node is a cross-community bridge._
 - **What connects `$schema`, `oxc`, `react/rules-of-hooks` to the rest of the system?**
-  _94 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _95 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `firestoreOps.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.1427061310782241 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1414141414141414 - nodes in this community are weakly interconnected._
 - **Should `Scanner.jsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.1073170731707317 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10336817653890824 - nodes in this community are weakly interconnected._
 - **Should `SIH 2026 — PS 26115 — Internal Project Documentation` be split into smaller, more focused modules?**
   _Cohesion score 0.058823529411764705 - nodes in this community are weakly interconnected._
 - **Should `SegreGuard — Engineering Specification & Build Backlog` be split into smaller, more focused modules?**

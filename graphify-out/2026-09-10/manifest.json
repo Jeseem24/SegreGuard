@@ -36,9 +36,9 @@
     "semantic_hash": ""
   },
   "src/classifiers/liveTracker.js": {
-    "mtime": 1788988877.1568751,
-    "seen": 1789013938.723377,
-    "ast_hash": "a92a7a99060604c519fa491e0a0e0cc6",
+    "mtime": 1789014265.0486312,
+    "seen": 1789014463.6676745,
+    "ast_hash": "5802d6723d30ae1890673526c417a6a4",
     "semantic_hash": ""
   },
   "src/classifiers/mockClassifier.js": {
@@ -54,9 +54,9 @@
     "semantic_hash": ""
   },
   "src/classifiers/tfjsClassifier.js": {
-    "mtime": 1789013602.700743,
-    "seen": 1789013938.7233863,
-    "ast_hash": "113fba30156ae94ed04a5fecfd31d74a",
+    "mtime": 1789014228.3801377,
+    "seen": 1789014463.6676893,
+    "ast_hash": "0791ee05e00a034cc276c6da93d3b827",
     "semantic_hash": ""
   },
   "src/components/dashboard/Dashboard.jsx": {
@@ -72,9 +72,9 @@
     "semantic_hash": ""
   },
   "src/components/scanner/CameraView.jsx": {
-    "mtime": 1788974609.794951,
-    "seen": 1789013938.7233968,
-    "ast_hash": "49bbac71c98d288c5e2682d5665bb291",
+    "mtime": 1789014190.815198,
+    "seen": 1789014463.6677022,
+    "ast_hash": "abe0fe2c81259d3376f8d53ec99c4be3",
     "semantic_hash": ""
   },
   "src/components/scanner/ManualPicker.jsx": {
@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "src/components/scanner/Scanner.jsx": {
-    "mtime": 1789013620.6365547,
-    "seen": 1789013938.7234066,
-    "ast_hash": "15fc2de1a07d87f94dfe59c344fe9543",
+    "mtime": 1789014388.4106295,
+    "seen": 1789014463.667716,
+    "ast_hash": "c648a023287fbf56fa7db37fb6545ac4",
     "semantic_hash": ""
   },
   "src/components/shared/ErrorBoundary.jsx": {

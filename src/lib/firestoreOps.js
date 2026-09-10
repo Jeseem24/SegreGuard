@@ -104,20 +104,40 @@ if (localBus) {
   };
 }
 
-// Cross-tab fallback listener via standard storage events
+// Cross-tab fallback listener via standard storage events & CustomEvents
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
     if (e.key === STORAGE_KEYS.EVENTS) notifyListeners('events');
     if (e.key === STORAGE_KEYS.BINS) notifyListeners('bins');
     if (e.key === STORAGE_KEYS.REQUESTS) notifyListeners('requests');
     if (e.key === STORAGE_KEYS.TASKS) notifyListeners('tasks');
+    if (e.key === 'segreguard_live_alert_ping' && e.newValue) {
+      try {
+        const data = JSON.parse(e.newValue);
+        if (data && data.alert) {
+          listeners.alerts.forEach(cb => {
+            try { cb(data.alert); } catch (err) { console.error(err); }
+          });
+        }
+      } catch (_err) {}
+    }
+  });
+
+  window.addEventListener('segreguard_live_alert', (e) => {
+    if (e.detail) {
+      listeners.alerts.forEach(cb => {
+        try { cb(e.detail); } catch (err) { console.error(err); }
+      });
+    }
   });
 }
 
 function broadcast(type) {
   notifyListeners(type);
   if (localBus) {
-    localBus.postMessage({ type, timestamp: Date.now() });
+    try {
+      localBus.postMessage({ type, timestamp: Date.now() });
+    } catch (_e) {}
   }
 }
 
@@ -125,11 +145,39 @@ function broadcast(type) {
  * Broadcast an instant pop-up toast alert across all active browser windows and tabs
  */
 export function broadcastAlert(alertData) {
+  const payload = {
+    ...alertData,
+    id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+    timestamp: alertData.timestamp || Date.now()
+  };
+
+  // 1. Direct memory callback to all subscribers in current window
   listeners.alerts.forEach(cb => {
-    try { cb(alertData); } catch (e) { console.error(e); }
+    try { cb(payload); } catch (e) { console.error(e); }
   });
+
+  // 2. In-window custom event dispatch
+  if (typeof window !== 'undefined') {
+    try {
+      window.dispatchEvent(new CustomEvent('segreguard_live_alert', { detail: payload }));
+    } catch (_e) {}
+  }
+
+  // 3. BroadcastChannel to other tabs
   if (localBus) {
-    localBus.postMessage({ type: 'live_alert', alert: alertData, timestamp: Date.now() });
+    try {
+      localBus.postMessage({ type: 'live_alert', alert: payload, timestamp: Date.now() });
+    } catch (_e) {}
+  }
+
+  // 4. LocalStorage ping to guarantee storage event triggers across all other browser tabs
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem('segreguard_live_alert_ping', JSON.stringify({
+        alert: payload,
+        timestamp: Date.now()
+      }));
+    } catch (_e) {}
   }
 }
 
@@ -138,8 +186,21 @@ export function broadcastAlert(alertData) {
  */
 export function subscribeToLiveAlerts(callback) {
   listeners.alerts.add(callback);
+
+  const customHandler = (e) => {
+    if (e.detail) {
+      try { callback(e.detail); } catch (err) { console.error(err); }
+    }
+  };
+  if (typeof window !== 'undefined') {
+    window.addEventListener('segreguard_live_alert', customHandler);
+  }
+
   return () => {
     listeners.alerts.delete(callback);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('segreguard_live_alert', customHandler);
+    }
   };
 }
 
@@ -558,7 +619,31 @@ export async function seedData() {
   setLocalRequests(initialRequests);
 }
 
-// ── Waste Events API ──
+// ── Waste Events & Bin Fill Increment API ──
+
+/**
+ * Increment matching bin fill level automatically when waste is disposed
+ */
+export function updateBinFill(category, wardId = 'ward-1', incrementAmount = 10, hospitalId = 'hosp-apex') {
+  const bins = getLocalBins();
+  const updatedBins = bins.map(b => {
+    const matchHosp = !b.hospitalId || b.hospitalId === hospitalId;
+    const matchWard = b.wardId === wardId;
+    const matchCat = b.category === category;
+    if (matchHosp && matchWard && matchCat) {
+      const currentFill = b.fillPercent || 0;
+      const newFill = Math.min(100, currentFill + incrementAmount);
+      return {
+        ...b,
+        fillPercent: newFill,
+        lastUpdatedAt: Date.now()
+      };
+    }
+    return b;
+  });
+  setLocalBins(updatedBins);
+}
+
 export async function addWasteEvent(eventData) {
   const eventId = `ev-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
   const fullEvent = {
@@ -572,11 +657,16 @@ export async function addWasteEvent(eventData) {
   setLocalEvents([fullEvent, ...current]);
 
   // 2. Increment matching bin fill level automatically
-  await updateBinFill(eventData.category, eventData.wardId || 'ward-1', 12);
+  try {
+    updateBinFill(eventData.category, eventData.wardId || 'ward-1', 10, eventData.hospitalId || 'hosp-apex');
+  } catch (err) {
+    console.warn('Bin fill update error:', err);
+  }
 
   // 3. Trigger instant live alert banner across all open dashboards (Admin, etc.)
-  const hospName = HOSPITALS[eventData.hospitalId || 'hosp-apex']?.name || 'Apex Memorial';
-  const wardName = HOSPITALS['hosp-apex']?.wards[eventData.wardId || 'ward-1']?.name || eventData.wardId || 'ICU-3';
+  const hosp = HOSPITALS[eventData.hospitalId || 'hosp-apex'] || HOSPITALS['hosp-apex'];
+  const wardName = hosp.wards?.[eventData.wardId || 'ward-1']?.name || eventData.wardId || 'ICU-3';
+
   broadcastAlert({
     type: 'waste_disposed',
     title: 'Live Waste Item Disposed',
@@ -589,7 +679,7 @@ export async function addWasteEvent(eventData) {
     timestamp: Date.now()
   });
 
-  // 3. Fire-and-forget Cloud Firestore write if available
+  // 4. Fire-and-forget Cloud Firestore write if available
   if (isFirebaseAvailable()) {
     try {
       Promise.race([
@@ -900,31 +990,6 @@ function attachLocalBinsListener(callback) {
   return () => {
     listeners.bins.delete(handler);
   };
-}
-
-export async function updateBinFill(category, wardId, incrementBy = 15) {
-  const bins = getLocalBins();
-  let needTask = false;
-  let targetBin = null;
-
-  const updatedBins = bins.map(b => {
-    if (b.wardId === wardId && b.category === category) {
-      const currentFill = b.fillPercent || 0;
-      const newFill = Math.min(100, currentFill + incrementBy);
-      if (newFill >= 80 && currentFill < 80) {
-        needTask = true;
-      }
-      targetBin = { ...b, fillPercent: newFill, lastUpdated: Date.now() };
-      return targetBin;
-    }
-    return b;
-  });
-
-  setLocalBins(updatedBins);
-
-  if (needTask && targetBin) {
-    await requestPickup(category, wardId, `Automated Threshold: Fill reached ${targetBin.fillPercent}%`);
-  }
 }
 
 // ── Utility: 48-Hour SLA Calculation Helper ──
