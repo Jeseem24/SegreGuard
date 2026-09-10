@@ -35,8 +35,20 @@ const ROLES = {
   }
 };
 
+function getInitialRole() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const r = (params.get('role') || '').toLowerCase();
+    if (r === 'logistics' || r === 'collector' || r === 'tasks') return ROLES.collector;
+    if (r === 'admin' || r === 'dashboard') return ROLES.admin;
+    if (r === 'worker' || r === 'nurse' || r === 'scanner') return ROLES.worker;
+  } catch (_e) {}
+  return null;
+}
+
 export function RoleProvider({ children }) {
-  const [role, setRole] = useState(null);
+  const [role, setRole] = useState(getInitialRole);
 
   const selectRole = useCallback((roleId) => {
     setRole(ROLES[roleId] || null);

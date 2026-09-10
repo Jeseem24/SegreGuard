@@ -39,7 +39,7 @@ export default function Dashboard() {
   const [bins, setBins] = useState([]);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [activeView, setActiveView] = useState('internal'); // 'internal' | 'products' | 'manifest'
+  const [activeView, setActiveView] = useState('wards'); // 'wards' | 'products' | 'manifest'
   const [selectedWard, setSelectedWard] = useState('ward-1');
   const [actionNotice, setActionNotice] = useState(null);
   const [exportedToast, setExportedToast] = useState(false);
@@ -292,11 +292,11 @@ export default function Dashboard() {
       <div className="dash__views">
         <button
           type="button"
-          className={`dash__view-tab ${activeView === 'internal' ? 'dash__view-tab--active' : ''}`}
-          onClick={() => setActiveView('internal')}
+          className={`dash__view-tab ${activeView === 'wards' ? 'dash__view-tab--active' : ''}`}
+          onClick={() => setActiveView('wards')}
         >
           <Building2 size={15} />
-          <span>Internal Wards & Rooms Telemetry</span>
+          <span>Ward & Room Diagnostics</span>
         </button>
         <button
           type="button"
@@ -316,12 +316,12 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* VIEW 1: Internal Wards & Specific Rooms Telemetry */}
-      {activeView === 'internal' && (
+      {/* VIEW 1: Hospital Wards & Specific Rooms Telemetry */}
+      {activeView === 'wards' && (
         <div className="internal-wards-view">
           <div className="internal-wards-header">
             <div>
-              <h3 className="internal-wards-title">Internal Hospital Ward & Room Diagnostics</h3>
+              <h3 className="internal-wards-title">Hospital Ward & Room Diagnostics</h3>
               <p className="internal-wards-sub">Select any ward below to inspect specific rooms, beds, and statutory 4-color bin fill gauges</p>
             </div>
           </div>

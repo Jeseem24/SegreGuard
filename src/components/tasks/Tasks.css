@@ -5,7 +5,7 @@
 .tasks {
   min-height: 100%;
   width: 100%;
-  padding: 1.25rem 1.25rem calc(95px + env(safe-area-inset-bottom, 15px)) 1.25rem;
+  padding: 1.25rem 1.25rem calc(120px + env(safe-area-inset-bottom, 25px)) 1.25rem;
   background: #050811;
   max-width: 860px;
   margin: 0 auto;
@@ -95,9 +95,15 @@
 /* ── KPI Grid ── */
 .tasks__kpi-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.65rem;
   margin-bottom: 1.15rem;
+}
+
+@media (max-width: 640px) {
+  .tasks__kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .tasks__kpi-card {
@@ -549,7 +555,38 @@
   border: 1px solid rgba(56, 189, 248, 0.2);
   background: #070d1d;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+  position: relative;
 }
+
+.route-map__legend {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.65rem 1.15rem;
+  background: rgba(15, 23, 42, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.72rem;
+  color: #94a3b8;
+  flex-wrap: wrap;
+}
+
+.route-map__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.route-map__legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.route-map__legend-dot--hub { background: #10b981; box-shadow: 0 0 6px #10b981; }
+.route-map__legend-dot--active { background: #38bdf8; box-shadow: 0 0 6px #38bdf8; }
+.route-map__legend-dot--pending { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+.route-map__legend-dot--standby { background: #64748b; }
 
 .route-map {
   width: 100%;
@@ -575,180 +612,493 @@
   transform-origin: center;
 }
 
-/* ── Route Itinerary Stops List ── */
-.route-itinerary {
+/* ── Filter Pills Bar ── */
+.hosp-filter-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.4rem 0.2rem;
+}
+
+.hosp-filter-strip__label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hosp-filter-strip__pills {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.hosp-filter-pill {
+  padding: 0.38rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  outline: none;
+}
+
+.hosp-filter-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+.hosp-filter-pill--active {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.15);
+}
+
+/* ── All Hospitals Route List ── */
+.all-hospitals-route-list {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.9rem;
 }
 
 .route-itinerary__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  margin-bottom: 0.25rem;
 }
 
 .route-itinerary__title {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #f8fafc;
-}
-
-.route-itinerary__sub {
-  font-size: 0.74rem;
-  color: #64748b;
-}
-
-.route-itinerary__empty {
-  padding: 2.5rem 1.5rem;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  text-align: center;
-  color: #94a3b8;
-  font-size: 0.82rem;
-}
-
-.route-stops-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.route-stop-card {
-  display: grid;
-  grid-template-columns: 100px 1fr;
-  gap: 1rem;
-  background: linear-gradient(160deg, rgba(15, 23, 42, 0.8) 0%, rgba(10, 15, 29, 0.95) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 1.15rem;
-  transition: all 0.2s;
-}
-
-@media (max-width: 540px) {
-  .route-stop-card {
-    grid-template-columns: 1fr;
-    gap: 0.65rem;
-  }
-}
-
-.route-stop-card--first {
-  border-color: #38bdf8;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.12);
-}
-
-.route-stop-card--final {
-  border-color: rgba(16, 185, 129, 0.35);
-  background: linear-gradient(160deg, rgba(16, 185, 129, 0.05) 0%, rgba(10, 15, 29, 0.95) 100%);
-}
-
-.route-stop-card__badge-col {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.35rem;
-}
-
-.route-stop-card__index-pill {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 800;
-  padding: 0.25rem 0.55rem;
-  border-radius: 6px;
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
-}
-
-.route-stop-card__index-pill--hub {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-.route-stop-card__next-tag {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  font-weight: 800;
-  color: #fbbf24;
-}
-
-.route-stop-card__details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-.route-stop-card__title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.route-stop-card__hosp-name {
   font-size: 1rem;
   font-weight: 800;
   color: #f8fafc;
 }
 
-.route-stop-card__meta {
+.route-itinerary__sub {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+  display: block;
+}
+
+/* ── Individual Hospital Transit Card ── */
+.hosp-transit-card {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.85) 0%, rgba(10, 15, 29, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.hosp-transit-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+}
+
+.hosp-transit-card--active {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.95) 0%, rgba(8, 20, 38, 0.98) 100%);
+}
+
+.hosp-transit-card--first {
+  border-color: #38bdf8;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.18);
+}
+
+.hosp-transit-card--pending {
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.hosp-transit-card--critical {
+  border-color: rgba(244, 63, 94, 0.4);
+}
+
+.hosp-transit-card--final {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: linear-gradient(160deg, rgba(16, 185, 129, 0.05) 0%, rgba(10, 15, 29, 0.98) 100%);
+}
+
+/* Identity & Top Row */
+.hosp-transit-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hosp-transit-card__stop-pill {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  letter-spacing: 0.04em;
+}
+
+.hosp-transit-card__stop-pill--next {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.hosp-transit-card__stop-pill--pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.hosp-transit-card__stop-pill--standby {
+  background: rgba(100, 116, 139, 0.12);
+  color: #94a3b8;
+  border-color: rgba(100, 116, 139, 0.25);
+}
+
+.hosp-transit-card__stop-pill--hub {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.hosp-transit-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.hosp-transit-card__name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.01em;
+}
+
+.hosp-transit-card__address {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   color: #94a3b8;
+  margin-top: 0.2rem;
 }
 
-.route-stop-card__meta strong {
+.hosp-transit-card__address strong {
   color: #38bdf8;
 }
 
-.route-stop-card__cargo-row {
+.hosp-transit-card__cargo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+/* ── 4-Bin Telemetry Strip ── */
+.hosp-transit-card__bins-section {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.hosp-bins-header {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  font-size: 0.72rem;
+  justify-content: space-between;
+  font-size: 0.7rem;
+}
+
+.hosp-bins-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hosp-bins-bedcount {
+  color: #64748b;
+  font-family: var(--font-mono);
+}
+
+.hosp-bins-meter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+}
+
+@media (max-width: 620px) {
+  .hosp-bins-meter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.hosp-bin-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.hosp-bin-bar-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  font-weight: 600;
   color: #cbd5e1;
 }
 
-.route-stop-card__cargo-stat {
+.hosp-bin-color-tag {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.hosp-bin-color-tag--yellow { background: #eab308; }
+.hosp-bin-color-tag--red { background: #ef4444; }
+.hosp-bin-color-tag--blue { background: #3b82f6; }
+.hosp-bin-color-tag--white { background: #e2e8f0; }
+
+.hosp-bin-bar-pct {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.7rem;
+}
+
+.hosp-bin-bar-item--danger .hosp-bin-bar-pct {
+  color: #f43f5e;
+}
+
+.hosp-bin-track {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.hosp-bin-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.hosp-bin-fill--yellow { background: #eab308; }
+.hosp-bin-fill--red { background: #ef4444; }
+.hosp-bin-fill--blue { background: #3b82f6; }
+.hosp-bin-fill--white { background: #cbd5e1; }
+
+/* ── Expandable Ward Breakdown Drawer ── */
+.hosp-ward-breakdown-drawer {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: toastPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hosp-ward-breakdown-drawer__header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #38bdf8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hosp-ward-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.hosp-ward-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.65rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  font-size: 0.73rem;
+}
+
+.hosp-ward-chip__name {
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.hosp-ward-chip__meta {
+  color: #94a3b8;
+  font-size: 0.68rem;
+}
+
+/* ── Action Bar at Bottom of Card ── */
+.hosp-transit-card__action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.hosp-transit-card__action-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hosp-transit-card__expand-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
+  font-size: 0.72rem;
   font-weight: 700;
+  color: #38bdf8;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem 0;
+  outline: none;
 }
 
-.route-stop-card__time {
-  font-family: var(--font-mono);
+.hosp-transit-card__expand-btn:hover {
+  text-decoration: underline;
+}
+
+.hosp-transit-card__phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
   color: #64748b;
+  font-family: var(--font-mono);
 }
 
-.route-stop-card__confirm-btn {
-  align-self: flex-start;
-  margin-top: 0.25rem;
+.hosp-transit-card__action-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hosp-transit-card__confirm-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 10px;
+  background: #10b981;
+  color: #050811;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.hosp-transit-card__confirm-btn:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+.hosp-transit-card__accept-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 10px;
+  background: #f59e0b;
+  color: #050811;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
+
+.hosp-transit-card__accept-btn:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+.hosp-transit-card__schedule-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.55rem 0.95rem;
-  border-radius: 9px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #34d399;
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.route-stop-card__confirm-btn:hover {
-  background: #10b981;
+.hosp-transit-card__schedule-btn:hover {
+  background: #38bdf8;
   color: #050811;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
 }
 
-.route-stop-card__hub-note {
-  font-size: 0.72rem;
-  color: #64748b;
-  line-height: 1.35;
+/* ── Central Hub Specs Strip ── */
+.hosp-hub-specs {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  flex-wrap: wrap;
 }
+
+.hosp-hub-spec-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.74rem;
+  color: #cbd5e1;
+}
+
+.hosp-hub-spec-item strong {
+  color: #34d399;
+}
+

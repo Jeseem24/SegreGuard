@@ -263,6 +263,48 @@ export const HOSPITALS = {
         rooms: ['Dialysis Station A', 'Dialysis Station B'] 
       }
     }
+  },
+  'hosp-fortis': {
+    id: 'hosp-fortis',
+    name: 'Fortis Super-Speciality Hospital',
+    shortName: 'Fortis Metro',
+    cityZone: 'North Health Tech Park (Zone 3)',
+    address: 'Plot 40, North Bio-Tech Expressway',
+    bedCount: 380,
+    coords: { x: 45, y: 18 },
+    distanceFromHubKm: 15.2,
+    phone: '+91 80 5567 1122',
+    primaryColor: '#ec4899',
+    wards: {
+      'ward-f1': {
+        id: 'ward-f1',
+        name: 'Cardiology Critical Unit',
+        floor: '5th Floor, Tower 1',
+        bedCount: 32,
+        rooms: ['Cath Lab Recovery', 'CCU Bed 1-8']
+      }
+    }
+  },
+  'hosp-apollo': {
+    id: 'hosp-apollo',
+    name: 'Apollo City Medical Center',
+    shortName: 'Apollo City',
+    cityZone: 'South Ring Expressway (Zone 5)',
+    address: '22 South Ring Boulevard, Zone 5',
+    bedCount: 290,
+    coords: { x: 78, y: 80 },
+    distanceFromHubKm: 10.4,
+    phone: '+91 80 6677 8899',
+    primaryColor: '#10b981',
+    wards: {
+      'ward-a1': {
+        id: 'ward-a1',
+        name: 'Orthopedic & Trauma Bay',
+        floor: '2nd Floor, South Block',
+        bedCount: 25,
+        rooms: ['Post-Surgical Bay', 'Trauma Cast Room']
+      }
+    }
   }
 };
 
@@ -285,8 +327,8 @@ export async function seedData() {
   const existingBins = getLocalBins();
   const existingReqs = getLocalRequests();
 
-  // If already initialized with requests, exit
-  if (existingBins && existingBins.length > 0 && existingReqs && existingReqs.length > 0) return;
+  // If already initialized with full multi-hospital dataset, exit
+  if (existingBins && existingBins.length >= 10 && existingReqs && existingReqs.length >= 3) return;
 
   const now = Date.now();
   const initialBins = [];
@@ -295,29 +337,37 @@ export async function seedData() {
   const initialRequests = [];
 
   const categories = ['yellow', 'red', 'white', 'blue'];
-  const wards = ['ward-1', 'ward-2', 'ward-3', 'ward-4'];
+  // Seed bins across all 5 regional hospitals
+  const allHospitalsList = Object.values(HOSPITALS);
+  allHospitalsList.forEach((hosp) => {
+    const hospWardIds = Object.keys(hosp.wards);
+    hospWardIds.forEach((wardId, wIdx) => {
+      categories.forEach((cat, cIdx) => {
+        const slaAgeHours = (wIdx * 11 + cIdx * 7) % 44;
+        const slaStartedAt = now - (slaAgeHours * 3600 * 1000);
+        const slaDeadline = slaStartedAt + (48 * 3600 * 1000);
+        
+        let fill = Math.floor(20 + Math.random() * 40);
+        // Realistic high-fill highlights for active demo
+        if (hosp.id === 'hosp-fortis' && cat === 'red') fill = 84;
+        if (hosp.id === 'hosp-metro' && cat === 'yellow') fill = 88;
+        if (hosp.id === 'hosp-apex' && cat === 'red') fill = 86;
+        if (hosp.id === 'hosp-apex' && cat === 'yellow') fill = 65;
+        if (hosp.id === 'hosp-city' && cat === 'blue') fill = 68;
+        if (hosp.id === 'hosp-apollo' && cat === 'yellow') fill = 76;
 
-  wards.forEach((wardId, wIdx) => {
-    categories.forEach((cat, cIdx) => {
-      const slaAgeHours = (wIdx * 11 + cIdx * 7) % 44;
-      const slaStartedAt = now - (slaAgeHours * 3600 * 1000);
-      const slaDeadline = slaStartedAt + (48 * 3600 * 1000);
-      
-      const fill = (wIdx === 0 && cat === 'red') ? 86 :
-                   (wIdx === 1 && cat === 'yellow') ? 92 :
-                   Math.floor(15 + Math.random() * 45);
-
-      const binId = `bin-${cat}-${wardId}`;
-      initialBins.push({
-        id: binId,
-        hospitalId: 'hosp-apex',
-        wardId,
-        category: cat,
-        fillPercent: fill,
-        barcodeId: `BIN-${cat.toUpperCase()}-${wardId.toUpperCase()}`,
-        slaStartedAt,
-        slaDeadline,
-        lastEmptiedAt: slaStartedAt
+        const binId = `bin-${hosp.id}-${cat}-${wardId}`;
+        initialBins.push({
+          id: binId,
+          hospitalId: hosp.id,
+          wardId,
+          category: cat,
+          fillPercent: fill,
+          barcodeId: `BIN-${cat.toUpperCase()}-${hosp.shortName.slice(0,3).toUpperCase()}-${wardId.toUpperCase()}`,
+          slaStartedAt,
+          slaDeadline,
+          lastEmptiedAt: slaStartedAt
+        });
       });
     });
   });
@@ -349,36 +399,36 @@ export async function seedData() {
     });
   });
 
-  // Seed Multi-Hospital Pickup Requests
-  // 1. Apex Memorial: Incoming Nurse Request awaiting Admin dispatch
+  // Seed Multi-Hospital Pickup Requests across the network
+  // 1. Fortis Super-Speciality: Stop #1 (Next Waypoint, Accepted on Route)
   initialRequests.push({
-    id: 'req-apex-01',
-    hospitalId: 'hosp-apex',
-    hospitalName: 'Apex Memorial City Hospital',
-    hospitalShortName: 'Apex Memorial',
-    hospitalAddress: 'Sector 4, Central Health Corridor',
-    hospitalCoords: { x: 30, y: 38 },
-    wardId: 'ward-1',
-    wardName: 'ICU-3 (Critical Care)',
-    room: 'Room 302 (Ventilator Bay)',
-    status: 'nurse_pending',
+    id: 'req-fortis-01',
+    hospitalId: 'hosp-fortis',
+    hospitalName: 'Fortis Super-Speciality Hospital',
+    hospitalShortName: 'Fortis Metro',
+    hospitalAddress: 'Plot 40, North Bio-Tech Expressway',
+    hospitalCoords: { x: 45, y: 18 },
+    wardId: 'ward-f1',
+    wardName: 'Cardiology Critical Unit',
+    room: 'Cath Lab Recovery',
+    status: 'accepted',
     urgency: 'CRITICAL',
-    reason: 'Nurse Priya: Red contaminated sharps & plastic bin reached 86% capacity threshold',
-    estimatedBags: 7,
-    estimatedWeightKg: 19.5,
+    reason: 'Emergency catheterization tubing & contaminated disposables clearance',
+    estimatedBags: 10,
+    estimatedWeightKg: 24.5,
     criticalBins: [
-      { category: 'red', fillPercent: 86, label: 'Red (Contaminated Plastics)' },
-      { category: 'yellow', fillPercent: 65, label: 'Yellow (Infectious Anatomical)' }
+      { category: 'red', fillPercent: 84, label: 'Red (Contaminated Plastics)' },
+      { category: 'yellow', fillPercent: 72, label: 'Yellow (Infectious Anatomical)' }
     ],
-    requestedBy: 'Nurse Priya (ICU-3)',
-    requestedAt: new Date(now - 14 * 60 * 1000).toISOString(),
-    approvedByAdminAt: null,
-    acceptedByDriverAt: null,
+    requestedBy: 'Admin Dr. Sharma (Fortis)',
+    requestedAt: new Date(now - 75 * 60 * 1000).toISOString(),
+    approvedByAdminAt: new Date(now - 60 * 60 * 1000).toISOString(),
+    acceptedByDriverAt: new Date(now - 25 * 60 * 1000).toISOString(),
     completedAt: null,
-    driverId: null
+    driverId: 'CBWTF Fleet Unit #3'
   });
 
-  // 2. Metro Care Multi-Speciality: Dispatched by Admin, awaiting Logistics Acceptance
+  // 2. Metro Care Multi-Speciality: Stop #2 (En Route, Accepted on Route)
   initialRequests.push({
     id: 'req-metro-02',
     hospitalId: 'hosp-metro',
@@ -389,7 +439,7 @@ export async function seedData() {
     wardId: 'ward-m1',
     wardName: 'Oncology-1 & Maternity',
     room: 'Chemo Daycare Suite 401',
-    status: 'logistics_pending',
+    status: 'accepted',
     urgency: 'HIGH',
     reason: 'Hospital Admin: Chemotherapy cytotoxic vials and anatomical bags scheduled transit',
     estimatedBags: 11,
@@ -401,12 +451,12 @@ export async function seedData() {
     requestedBy: 'Admin Dr. Verma (Metro Care)',
     requestedAt: new Date(now - 38 * 60 * 1000).toISOString(),
     approvedByAdminAt: new Date(now - 30 * 60 * 1000).toISOString(),
-    acceptedByDriverAt: null,
+    acceptedByDriverAt: new Date(now - 15 * 60 * 1000).toISOString(),
     completedAt: null,
-    driverId: null
+    driverId: 'CBWTF Fleet Unit #3'
   });
 
-  // 3. St. Jude Regional Healthcare: Accepted by Logistics & currently in Smart Route!
+  // 3. St. Jude Regional Healthcare: Stop #3 (En Route, Accepted on Route)
   initialRequests.push({
     id: 'req-jude-03',
     hospitalId: 'hosp-city',
@@ -429,9 +479,37 @@ export async function seedData() {
     requestedBy: 'Admin Sister Mary (St. Jude)',
     requestedAt: new Date(now - 60 * 60 * 1000).toISOString(),
     approvedByAdminAt: new Date(now - 50 * 60 * 1000).toISOString(),
-    acceptedByDriverAt: new Date(now - 20 * 60 * 1000).toISOString(),
+    acceptedByDriverAt: new Date(now - 10 * 60 * 1000).toISOString(),
     completedAt: null,
-    driverId: 'CBWTF-Fleet-Alpha'
+    driverId: 'CBWTF Fleet Unit #3'
+  });
+
+  // 4. Apex Memorial: Dispatched by Hospital Admin, awaiting Transporter Acceptance
+  initialRequests.push({
+    id: 'req-apex-01',
+    hospitalId: 'hosp-apex',
+    hospitalName: 'Apex Memorial City Hospital',
+    hospitalShortName: 'Apex Memorial',
+    hospitalAddress: 'Sector 4, Central Health Corridor',
+    hospitalCoords: { x: 30, y: 38 },
+    wardId: 'ward-1',
+    wardName: 'ICU-3 (Critical Care)',
+    room: 'Room 302 (Ventilator Bay)',
+    status: 'logistics_pending',
+    urgency: 'CRITICAL',
+    reason: 'Nurse Priya & Admin: Red contaminated plastics & Yellow anatomical bins near capacity threshold',
+    estimatedBags: 7,
+    estimatedWeightKg: 19.5,
+    criticalBins: [
+      { category: 'red', fillPercent: 86, label: 'Red (Contaminated Plastics)' },
+      { category: 'yellow', fillPercent: 65, label: 'Yellow (Infectious Anatomical)' }
+    ],
+    requestedBy: 'Infection Control Admin (Apex)',
+    requestedAt: new Date(now - 14 * 60 * 1000).toISOString(),
+    approvedByAdminAt: new Date(now - 10 * 60 * 1000).toISOString(),
+    acceptedByDriverAt: null,
+    completedAt: null,
+    driverId: null
   });
 
   setLocalBins(initialBins);
@@ -961,6 +1039,54 @@ export async function acceptLogisticsRequest(requestId, driverId = 'CBWTF Fleet 
     return r;
   });
   setLocalRequests(updated);
+}
+
+/**
+ * Logistics Transporter directly adds a hospital to the active smart route (instant route dispatch)
+ */
+export async function scheduleHospitalPickup(hospitalId, urgency = 'HIGH') {
+  const hospital = HOSPITALS[hospitalId] || HOSPITALS['hosp-apex'];
+  const reqId = `req-dispatch-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+  const now = new Date();
+
+  // Find bins for this hospital to gauge load
+  const allBins = getLocalBins().filter(b => b.hospitalId === hospitalId);
+  const criticalBins = allBins
+    .map(b => ({
+      category: b.category,
+      fillPercent: b.fillPercent || 0,
+      label: b.category.toUpperCase()
+    }))
+    .sort((a, b) => b.fillPercent - a.fillPercent)
+    .slice(0, 3);
+
+  const newReq = {
+    id: reqId,
+    hospitalId,
+    hospitalName: hospital.name,
+    hospitalShortName: hospital.shortName,
+    hospitalAddress: hospital.address,
+    hospitalCoords: hospital.coords,
+    wardId: 'all-wards',
+    wardName: 'All Facility Wards',
+    room: 'Facility Bio-Waste Staging Bay',
+    status: 'accepted', // Immediately on route
+    urgency,
+    reason: `Fleet Dispatch: Transporter scheduled immediate corridor transit collection`,
+    estimatedBags: Math.max(6, Math.round((hospital.bedCount || 300) / 40)),
+    estimatedWeightKg: Number((Math.max(14, (hospital.bedCount || 300) * 0.07)).toFixed(1)),
+    criticalBins,
+    requestedBy: 'CBWTF Fleet Unit #3',
+    requestedAt: now.toISOString(),
+    approvedByAdminAt: now.toISOString(),
+    acceptedByDriverAt: now.toISOString(),
+    completedAt: null,
+    driverId: 'CBWTF Fleet Unit #3'
+  };
+
+  const requests = getLocalRequests();
+  setLocalRequests([newReq, ...requests]);
+  return reqId;
 }
 
 /**
