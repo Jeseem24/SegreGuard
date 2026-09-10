@@ -58,7 +58,8 @@ const listeners = {
   events: new Set(),
   tasks: new Set(),
   bins: new Set(),
-  requests: new Set()
+  requests: new Set(),
+  alerts: new Set()
 };
 
 function notifyListeners(type) {
@@ -90,10 +91,27 @@ function notifyListeners(type) {
 
 if (localBus) {
   localBus.onmessage = (msg) => {
-    if (msg.data && msg.data.type) {
-      notifyListeners(msg.data.type);
+    if (msg.data) {
+      if (msg.data.type === 'live_alert' && msg.data.alert) {
+        listeners.alerts.forEach(cb => {
+          try { cb(msg.data.alert); } catch (e) { console.error(e); }
+        });
+      }
+      if (msg.data.type) {
+        notifyListeners(msg.data.type);
+      }
     }
   };
+}
+
+// Cross-tab fallback listener via standard storage events
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEYS.EVENTS) notifyListeners('events');
+    if (e.key === STORAGE_KEYS.BINS) notifyListeners('bins');
+    if (e.key === STORAGE_KEYS.REQUESTS) notifyListeners('requests');
+    if (e.key === STORAGE_KEYS.TASKS) notifyListeners('tasks');
+  });
 }
 
 function broadcast(type) {
@@ -101,6 +119,28 @@ function broadcast(type) {
   if (localBus) {
     localBus.postMessage({ type, timestamp: Date.now() });
   }
+}
+
+/**
+ * Broadcast an instant pop-up toast alert across all active browser windows and tabs
+ */
+export function broadcastAlert(alertData) {
+  listeners.alerts.forEach(cb => {
+    try { cb(alertData); } catch (e) { console.error(e); }
+  });
+  if (localBus) {
+    localBus.postMessage({ type: 'live_alert', alert: alertData, timestamp: Date.now() });
+  }
+}
+
+/**
+ * Subscribe to live pop-up alerts across all roles (Admin, Logistics, Scanner)
+ */
+export function subscribeToLiveAlerts(callback) {
+  listeners.alerts.add(callback);
+  return () => {
+    listeners.alerts.delete(callback);
+  };
 }
 
 // ── Local Storage Data Helpers ──
@@ -534,6 +574,21 @@ export async function addWasteEvent(eventData) {
   // 2. Increment matching bin fill level automatically
   await updateBinFill(eventData.category, eventData.wardId || 'ward-1', 12);
 
+  // 3. Trigger instant live alert banner across all open dashboards (Admin, etc.)
+  const hospName = HOSPITALS[eventData.hospitalId || 'hosp-apex']?.name || 'Apex Memorial';
+  const wardName = HOSPITALS['hosp-apex']?.wards[eventData.wardId || 'ward-1']?.name || eventData.wardId || 'ICU-3';
+  broadcastAlert({
+    type: 'waste_disposed',
+    title: 'Live Waste Item Disposed',
+    message: `${eventData.itemLabel} added to ${eventData.category.toUpperCase()} Bin in ${wardName} (${eventData.room || 'General'})`,
+    itemLabel: eventData.itemLabel,
+    category: eventData.category,
+    wardId: eventData.wardId || 'ward-1',
+    room: eventData.room,
+    hospitalId: eventData.hospitalId || 'hosp-apex',
+    timestamp: Date.now()
+  });
+
   // 3. Fire-and-forget Cloud Firestore write if available
   if (isFirebaseAvailable()) {
     try {
@@ -946,6 +1001,17 @@ export async function requestPickupFromNurse({
 
   const requests = getLocalRequests();
   setLocalRequests([newRequest, ...requests]);
+
+  broadcastAlert({
+    type: 'nurse_request',
+    title: 'Nurse Waste Pickup Request',
+    message: `${nurseName} (${ward.name}) requested pickup: ${reason}`,
+    urgency,
+    hospitalId,
+    wardName: ward.name,
+    timestamp: Date.now()
+  });
+
   return reqId;
 }
 
@@ -954,8 +1020,15 @@ export async function requestPickupFromNurse({
  */
 export async function approveAndDispatchToLogistics(requestId, adminNotes = '') {
   const requests = getLocalRequests();
+  let dispatchedHospName = '';
+  let dispatchedWard = '';
+  let dispatchedUrgency = 'HIGH';
+
   const updated = requests.map(r => {
     if (r.id === requestId) {
+      dispatchedHospName = r.hospitalName;
+      dispatchedWard = r.wardName;
+      dispatchedUrgency = r.urgency;
       return {
         ...r,
         status: 'logistics_pending', // Admin -> Logistics
@@ -966,6 +1039,14 @@ export async function approveAndDispatchToLogistics(requestId, adminNotes = '') 
     return r;
   });
   setLocalRequests(updated);
+
+  broadcastAlert({
+    type: 'logistics_dispatch',
+    title: 'Pickup Dispatched to Logistics',
+    message: `${dispatchedHospName || 'Hospital'} (${dispatchedWard}) dispatched to CBWTF fleet!`,
+    urgency: dispatchedUrgency,
+    timestamp: Date.now()
+  });
 }
 
 /**
@@ -1019,6 +1100,16 @@ export async function adminDirectRequest({
 
   const requests = getLocalRequests();
   setLocalRequests([newRequest, ...requests]);
+
+  broadcastAlert({
+    type: 'logistics_dispatch',
+    title: 'Hospital Admin Pickup Request',
+    message: `${hospital.name} requested CBWTF collection: ${wardNames} (${urgency} urgency)`,
+    urgency,
+    hospitalId,
+    timestamp: Date.now()
+  });
+
   return reqId;
 }
 
@@ -1130,6 +1221,14 @@ export async function completeLogisticsRequest(requestId) {
     });
     setLocalBins(updatedBins);
   }
+
+  broadcastAlert({
+    type: 'pickup_completed',
+    title: 'Waste Collection Completed',
+    message: `CBWTF Fleet completed pickup at ${targetReq?.hospitalName || 'Hospital'}. Bins reset to 0% ✓`,
+    hospitalId: targetReq?.hospitalId,
+    timestamp: Date.now()
+  });
 }
 
 /**

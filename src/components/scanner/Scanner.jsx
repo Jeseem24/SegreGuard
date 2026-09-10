@@ -183,7 +183,7 @@ export default function Scanner() {
       }
 
       if (!classification) {
-        if (camMode === 'live' && liveTracked) {
+        if (camMode === 'live' && liveTracked && liveTracked.category !== 'unknown') {
           classification = {
             ...liveTracked,
             engine: 'Primary Layer: Edge Neuro-Symbolic (MobileNetV2)',
@@ -211,9 +211,12 @@ export default function Scanner() {
             let secondaryResult = null;
             if (DEFAULT_GEMINI_API_KEY && videoRef.current && videoRef.current.readyState >= 2) {
               try {
-                secondaryResult = await classifyWithGemini(videoRef.current, DEFAULT_GEMINI_API_KEY);
+                // High-speed race with max 2s timeout
+                const geminiPromise = classifyWithGemini(videoRef.current, DEFAULT_GEMINI_API_KEY);
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000));
+                secondaryResult = await Promise.race([geminiPromise, timeoutPromise]);
               } catch (geminiErr) {
-                console.warn('Secondary Gemini Layer error, falling back to edge decision:', geminiErr);
+                console.warn('Secondary Gemini Layer error or timeout, falling back to edge decision:', geminiErr);
               }
             }
 
@@ -222,7 +225,7 @@ export default function Scanner() {
                 ...secondaryResult,
                 engine: 'Secondary Layer: Google Gemini 2.5 Flash Vision'
               };
-            } else if (primaryResult) {
+            } else if (primaryResult && primaryResult.category !== 'unknown') {
               classification = {
                 ...primaryResult,
                 engine: 'Primary Layer: Edge Neuro-Symbolic Engine'

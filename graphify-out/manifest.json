@@ -1,0 +1,212 @@
+{
+  ".oxlintrc.json": {
+    "mtime": 1788956828.6383348,
+    "seen": 1789013938.7233436,
+    "ast_hash": "5e6e3cea3e89137071c142dd7835b0ef",
+    "semantic_hash": ""
+  },
+  "firestore.indexes.json": {
+    "mtime": 1788957456.3143187,
+    "seen": 1789013938.7233562,
+    "ast_hash": "092bfea81810ca800f12663bb15a8726",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1788978291.019866,
+    "seen": 1789013938.7233617,
+    "ast_hash": "fd6b8924fb3a705683d89e40a123587e",
+    "semantic_hash": ""
+  },
+  "src/App.jsx": {
+    "mtime": 1788957293.4609847,
+    "seen": 1789013938.7233655,
+    "ast_hash": "31e06e8a4ba900a9f58cf1b943a8490e",
+    "semantic_hash": ""
+  },
+  "src/classifiers/classifierInterface.js": {
+    "mtime": 1788967141.8550234,
+    "seen": 1789013938.7233694,
+    "ast_hash": "41b5f37f471ac0dc2e8a1c8a6156f1d9",
+    "semantic_hash": ""
+  },
+  "src/classifiers/geminiClassifier.js": {
+    "mtime": 1788985828.3937428,
+    "seen": 1789013938.7233727,
+    "ast_hash": "28741d963a86cb98ba83ead405b00e06",
+    "semantic_hash": ""
+  },
+  "src/classifiers/liveTracker.js": {
+    "mtime": 1788988877.1568751,
+    "seen": 1789013938.723377,
+    "ast_hash": "a92a7a99060604c519fa491e0a0e0cc6",
+    "semantic_hash": ""
+  },
+  "src/classifiers/mockClassifier.js": {
+    "mtime": 1788967148.401557,
+    "seen": 1789013938.7233799,
+    "ast_hash": "1acbe32f300ce4dc0a2689228a500d73",
+    "semantic_hash": ""
+  },
+  "src/classifiers/rulesEngine.js": {
+    "mtime": 1789013583.4373279,
+    "seen": 1789013938.7233832,
+    "ast_hash": "69fc5d0a0e9532c5fa808a3de183a30e",
+    "semantic_hash": ""
+  },
+  "src/classifiers/tfjsClassifier.js": {
+    "mtime": 1789013602.700743,
+    "seen": 1789013938.7233863,
+    "ast_hash": "113fba30156ae94ed04a5fecfd31d74a",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/Dashboard.jsx": {
+    "mtime": 1789013773.3069384,
+    "seen": 1789013938.7233894,
+    "ast_hash": "af7b6b22a3087fe6dcb5d27edecc785a",
+    "semantic_hash": ""
+  },
+  "src/components/log/LogList.jsx": {
+    "mtime": 1788978497.0535347,
+    "seen": 1789013938.7233934,
+    "ast_hash": "7db98a86f24be60360d502fa974795cb",
+    "semantic_hash": ""
+  },
+  "src/components/scanner/CameraView.jsx": {
+    "mtime": 1788974609.794951,
+    "seen": 1789013938.7233968,
+    "ast_hash": "49bbac71c98d288c5e2682d5665bb291",
+    "semantic_hash": ""
+  },
+  "src/components/scanner/ManualPicker.jsx": {
+    "mtime": 1788980165.1376874,
+    "seen": 1789013938.7233999,
+    "ast_hash": "e99ac9405e94044c494b4644a49639f3",
+    "semantic_hash": ""
+  },
+  "src/components/scanner/ResultPanel.jsx": {
+    "mtime": 1789006072.0975928,
+    "seen": 1789013938.723403,
+    "ast_hash": "a0a2e91ea0701293c032b56fdd645315",
+    "semantic_hash": ""
+  },
+  "src/components/scanner/Scanner.jsx": {
+    "mtime": 1789013620.6365547,
+    "seen": 1789013938.7234066,
+    "ast_hash": "15fc2de1a07d87f94dfe59c344fe9543",
+    "semantic_hash": ""
+  },
+  "src/components/shared/ErrorBoundary.jsx": {
+    "mtime": 1788957280.8621864,
+    "seen": 1789013938.72341,
+    "ast_hash": "04e753bac72143f5010faf6d33093c83",
+    "semantic_hash": ""
+  },
+  "src/components/shared/RolePicker.jsx": {
+    "mtime": 1788978324.5175376,
+    "seen": 1789013938.723413,
+    "ast_hash": "70e1443527443837546a2b06d1930ad3",
+    "semantic_hash": ""
+  },
+  "src/components/shared/TabBar.jsx": {
+    "mtime": 1788980619.1197894,
+    "seen": 1789013938.7234163,
+    "ast_hash": "fd0d8ed3a21aa5eb3137074c008579a5",
+    "semantic_hash": ""
+  },
+  "src/components/tasks/TaskList.jsx": {
+    "mtime": 1789013830.821616,
+    "seen": 1789013938.7234194,
+    "ast_hash": "c7b4b4ec1f6885bb3052a190dc4b7535",
+    "semantic_hash": ""
+  },
+  "src/context/RoleContext.jsx": {
+    "mtime": 1789010437.1164849,
+    "seen": 1789013938.7234225,
+    "ast_hash": "98003775ac4f9aab9813515304b20c0b",
+    "semantic_hash": ""
+  },
+  "src/lib/firebase.js": {
+    "mtime": 1788973850.7335367,
+    "seen": 1789013938.7234256,
+    "ast_hash": "ba879cba6f9678311bd9ba58a9aa2bb1",
+    "semantic_hash": ""
+  },
+  "src/lib/firestoreOps.js": {
+    "mtime": 1789013720.3038573,
+    "seen": 1789013938.7234302,
+    "ast_hash": "094a72fd9aacf56e1041e582ecae07bc",
+    "semantic_hash": ""
+  },
+  "src/main.jsx": {
+    "mtime": 1788956828.7969973,
+    "seen": 1789013938.7234333,
+    "ast_hash": "e13723e2574429d9a6d849727e3ff695",
+    "semantic_hash": ""
+  },
+  "vercel.json": {
+    "mtime": 1788969123.6510592,
+    "seen": 1789013938.7234366,
+    "ast_hash": "6411d2fbb5f0e00aaff0ca0ded84e0b6",
+    "semantic_hash": ""
+  },
+  "vite.config.js": {
+    "mtime": 1788956828.6231625,
+    "seen": 1789013938.7234397,
+    "ast_hash": "5d54447744c19ccd28638a5c668d15ea",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1788956828.812252,
+    "seen": 1789013938.7234428,
+    "ast_hash": "75eb386f17caf77fd6fe3ce1d90968ee",
+    "semantic_hash": ""
+  },
+  "docs/SIH2026_PS26115_Project_Documentation.md": {
+    "mtime": 1788945941.6662543,
+    "seen": 1789013938.7234457,
+    "ast_hash": "fc99023c37379a52afcc75ffba867eb3",
+    "semantic_hash": ""
+  },
+  "docs/SegreGuard_Engineering_Spec.md": {
+    "mtime": 1788947991.7086904,
+    "seen": 1789013938.7234488,
+    "ast_hash": "d1be6c47be6d93c0e0e16687e642e58a",
+    "semantic_hash": ""
+  },
+  "index.html": {
+    "mtime": 1788978304.6368184,
+    "seen": 1789013938.723452,
+    "ast_hash": "f0498593f7807ef915de507868eb3e47",
+    "semantic_hash": ""
+  },
+  "public/favicon.svg": {
+    "mtime": 1788956828.9933603,
+    "seen": 1789013938.723455,
+    "ast_hash": "7e840862161341271697daa99a40d76b",
+    "semantic_hash": ""
+  },
+  "public/icons.svg": {
+    "mtime": 1788956829.0740652,
+    "seen": 1789013938.7234588,
+    "ast_hash": "3b4fcfcf393eca4d264dca4a4663bc37",
+    "semantic_hash": ""
+  },
+  "src/assets/hero.png": {
+    "mtime": 1788956828.884018,
+    "seen": 1789013938.723462,
+    "ast_hash": "aead493361b27e7510691c5d7072dfc1",
+    "semantic_hash": ""
+  },
+  "src/assets/react.svg": {
+    "mtime": 1788956829.155663,
+    "seen": 1789013938.7234657,
+    "ast_hash": "f0402b67b6ce880f65666bb49e841696",
+    "semantic_hash": ""
+  },
+  "src/assets/vite.svg": {
+    "mtime": 1788956829.2281811,
+    "seen": 1789013938.723469,
+    "ast_hash": "9960a24288958394ac50e57ff638b036",
+    "semantic_hash": ""
+  }
+}

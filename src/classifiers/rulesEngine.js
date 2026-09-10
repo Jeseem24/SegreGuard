@@ -85,7 +85,12 @@ export function evaluateLegalCategory(rawClass) {
     normalized.includes('knife') || 
     normalized.includes('razor') || 
     normalized.includes('tweezers') ||
-    normalized.includes('sharp')
+    normalized.includes('sharp') ||
+    normalized.includes('pin') ||
+    normalized.includes('safety pin') ||
+    normalized.includes('lancet') ||
+    normalized.includes('cutter') ||
+    normalized.includes('cleaver')
   ) {
     return { ...CPCB_SCHEDULE_I_RULES.sharps_waste, categoryKey: 'white', label: 'White Container (Sharps)' };
   }
@@ -93,6 +98,7 @@ export function evaluateLegalCategory(rawClass) {
   // 2. YELLOW BIN: Anatomical, Soiled dressings, Cotton, Gauze, Blood-stained PPE, Masks
   if (
     normalized.includes('mask') || 
+    normalized.includes('gasmask') ||
     normalized.includes('respirator') ||
     normalized.includes('face shield') ||
     normalized.includes('cotton') || 
@@ -105,7 +111,16 @@ export function evaluateLegalCategory(rawClass) {
     normalized.includes('plaster') ||
     normalized.includes('handkerchief') ||
     normalized.includes('bib') ||
-    normalized.includes('apron')
+    normalized.includes('apron') ||
+    normalized.includes('diaper') ||
+    normalized.includes('neck brace') ||
+    normalized.includes('band-aid') ||
+    normalized.includes('swab') ||
+    normalized.includes('cloth') ||
+    normalized.includes('linen') ||
+    normalized.includes('fabric') ||
+    normalized.includes('wool') ||
+    normalized.includes('velvet')
   ) {
     return { ...CPCB_SCHEDULE_I_RULES.soiled_waste, categoryKey: 'yellow', label: 'Yellow Bin (Infectious)' };
   }
@@ -114,6 +129,8 @@ export function evaluateLegalCategory(rawClass) {
   if (
     normalized.includes('syringe') || 
     normalized.includes('glove') || 
+    normalized.includes('mitten') ||
+    normalized.includes('rubber') ||
     normalized.includes('tube') || 
     normalized.includes('tubing') || 
     normalized.includes('catheter') || 
@@ -122,7 +139,12 @@ export function evaluateLegalCategory(rawClass) {
     normalized.includes('pen') || 
     normalized.includes('marker') || 
     normalized.includes('toothbrush') ||
-    normalized.includes('saline')
+    normalized.includes('saline') ||
+    normalized.includes('balloon') ||
+    normalized.includes('nipple') ||
+    normalized.includes('pipette') ||
+    normalized.includes('dropper') ||
+    normalized.includes('infusion')
   ) {
     return { ...CPCB_SCHEDULE_I_RULES.contaminated_plastics, categoryKey: 'red', label: 'Red Bin (Recyclable Plastic)' };
   }
@@ -136,7 +158,11 @@ export function evaluateLegalCategory(rawClass) {
     normalized.includes('wine glass') || 
     normalized.includes('cup') ||
     normalized.includes('flask') ||
-    normalized.includes('jar')
+    normalized.includes('jar') ||
+    normalized.includes('beaker') ||
+    normalized.includes('pill bottle') ||
+    normalized.includes('goblet') ||
+    normalized.includes('petri')
   ) {
     return { ...CPCB_SCHEDULE_I_RULES.glassware_implants, categoryKey: 'blue', label: 'Blue Container (Glassware)' };
   }

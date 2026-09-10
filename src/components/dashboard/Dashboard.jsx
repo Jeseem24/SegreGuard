@@ -3,6 +3,7 @@ import {
   subscribeToWasteEvents,
   subscribeToBins,
   subscribeToHospitalRequests,
+  subscribeToLiveAlerts,
   approveAndDispatchToLogistics,
   adminDirectRequest,
   HOSPITALS,
@@ -43,6 +44,7 @@ export default function Dashboard() {
   const [selectedWard, setSelectedWard] = useState('ward-1');
   const [actionNotice, setActionNotice] = useState(null);
   const [exportedToast, setExportedToast] = useState(false);
+  const [liveAlert, setLiveAlert] = useState(null);
 
   const hospital = HOSPITALS[selectedHospitalId] || HOSPITALS['hosp-apex'];
 
@@ -50,11 +52,16 @@ export default function Dashboard() {
     const unsubEvents = subscribeToWasteEvents(null, (data) => setEvents(data || []));
     const unsubBins = subscribeToBins((data) => setBins(data || []));
     const unsubReqs = subscribeToHospitalRequests(selectedHospitalId, (data) => setRequests(data || []));
+    const unsubAlerts = subscribeToLiveAlerts((alert) => {
+      setLiveAlert(alert);
+      setTimeout(() => setLiveAlert(null), 5500);
+    });
 
     return () => {
       unsubEvents();
       unsubBins();
       unsubReqs();
+      unsubAlerts();
     };
   }, [selectedHospitalId]);
 
@@ -138,6 +145,35 @@ export default function Dashboard() {
 
   return (
     <div className="dash">
+      {/* Live Cross-Role Synchronized Pop-up Banner */}
+      {liveAlert && (
+        <div className={`dash__live-alert-banner dash__live-alert-banner--${liveAlert.type}`}>
+          <div className="dash__live-alert-icon">
+            {liveAlert.type === 'waste_disposed' ? (
+              <span className="dash__live-pulse-dot" />
+            ) : liveAlert.type === 'nurse_request' ? (
+              <AlertTriangle size={18} className="text-amber" />
+            ) : (
+              <CheckCircle2 size={18} className="text-emerald" />
+            )}
+          </div>
+          <div className="dash__live-alert-body">
+            <div className="dash__live-alert-top">
+              <span className="dash__live-alert-tag">LIVE PLATFORM SYNC</span>
+              <span className="dash__live-alert-title">{liveAlert.title}</span>
+            </div>
+            <p className="dash__live-alert-msg">{liveAlert.message}</p>
+          </div>
+          <button 
+            type="button" 
+            className="dash__live-alert-close"
+            onClick={() => setLiveAlert(null)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Toast Notice */}
       {actionNotice && (
         <div className="dash__toast-floating">

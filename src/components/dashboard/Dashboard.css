@@ -984,3 +984,118 @@
   padding: 2.5rem !important;
   color: #64748b;
 }
+
+/* ═══════════════════════════════════════════
+   Live Real-Time Pop-Up Alert Banner (Admin)
+   ═══════════════════════════════════════════ */
+.dash__live-alert-banner {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  width: min(92vw, 680px);
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1.15rem;
+  background: rgba(11, 19, 43, 0.96);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 0 24px rgba(16, 185, 129, 0.25);
+  border-radius: 14px;
+  animation: bannerSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dash__live-alert-banner--nurse_request {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 0 24px rgba(245, 158, 11, 0.25);
+}
+
+.dash__live-alert-banner--logistics_dispatch {
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 0 24px rgba(56, 189, 248, 0.25);
+}
+
+@keyframes bannerSlideDown {
+  0% { transform: translate(-50%, -24px); opacity: 0; }
+  100% { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.dash__live-alert-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dash__live-alert-banner--nurse_request .dash__live-alert-icon {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.dash__live-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulse-subtle 1.5s infinite ease-in-out;
+}
+
+.dash__live-alert-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash__live-alert-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dash__live-alert-tag {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #34d399;
+  letter-spacing: 0.06em;
+}
+
+.dash__live-alert-title {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.dash__live-alert-msg {
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  margin-top: 0.15rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash__live-alert-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.dash__live-alert-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+

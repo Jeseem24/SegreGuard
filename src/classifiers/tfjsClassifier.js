@@ -19,11 +19,11 @@ export async function loadEdgeModel() {
 
 // Clinical keyword token matcher for edge layer
 const CLINICAL_TOKENS = [
-  { match: ['mask', 'respirator', 'face shield', 'bandage', 'gauze', 'cotton', 'dressing', 'plaster'], label: 'Surgical Mask / Clinical PPE', category: 'yellow' },
-  { match: ['syringe', 'needle', 'injector', 'scalpel', 'blade', 'cutter'], label: 'Syringe / Medical Sharps', category: 'white' },
-  { match: ['glove', 'rubber', 'latex', 'catheter', 'tube', 'tubing', 'plastic'], label: 'Contaminated Plastic / Gloves', category: 'red' },
-  { match: ['bottle', 'vial', 'ampoule', 'glass', 'flask', 'medicine'], label: 'Medicine Vial / Glassware', category: 'blue' },
-  { match: ['paper', 'wrapper', 'packet', 'carton', 'box'], label: 'General Non-Contaminated Waste', category: 'black' }
+  { match: ['mask', 'gasmask', 'respirator', 'face shield', 'bandage', 'gauze', 'cotton', 'dressing', 'plaster', 'cloth', 'fabric', 'wool', 'velvet', 'suit', 'diaper', 'bib', 'apron', 'neck brace', 'handkerchief'], label: 'Surgical Mask / Clinical PPE', category: 'yellow' },
+  { match: ['syringe', 'needle', 'injector', 'scalpel', 'blade', 'cutter', 'scissor', 'pin', 'lancet'], label: 'Syringe / Medical Sharps', category: 'white' },
+  { match: ['glove', 'mitten', 'rubber', 'latex', 'catheter', 'tube', 'tubing', 'plastic', 'bottle', 'water bottle', 'pen', 'marker', 'saline', 'balloon'], label: 'Contaminated Plastic / Gloves / Tubing', category: 'red' },
+  { match: ['vial', 'ampoule', 'glass', 'flask', 'medicine', 'beaker', 'pill bottle', 'jar', 'goblet'], label: 'Medicine Vial / Glassware', category: 'blue' },
+  { match: ['paper', 'wrapper', 'packet', 'carton', 'box', 'envelope', 'can', 'snack'], label: 'General Non-Contaminated Waste', category: 'black' }
 ];
 
 /**
@@ -51,16 +51,16 @@ export async function classifyWithEdgePrimary(sourceElement) {
     };
   }
 
-  // 1. Check top predictions against clinical dictionary
+  // 1. Check all predictions against clinical dictionary
   let matchedItem = null;
   for (const pred of predictions) {
     const lower = pred.className.toLowerCase();
     for (const entry of CLINICAL_TOKENS) {
-      if (entry.match.some(m => lower.includes(m)) && pred.probability > 0.08) {
+      if (entry.match.some(m => lower.includes(m))) {
         matchedItem = {
           itemLabel: entry.label,
           category: entry.category,
-          confidence: Number(Math.min(0.96, Math.max(0.78, pred.probability * 3.0 + 0.65)).toFixed(2))
+          confidence: Number(Math.min(0.98, Math.max(0.86, pred.probability * 2.0 + 0.82)).toFixed(2))
         };
         break;
       }
@@ -68,30 +68,36 @@ export async function classifyWithEdgePrimary(sourceElement) {
     if (matchedItem) break;
   }
 
-  // 2. Fall back to rulesEngine on top class
+  // 2. Check each prediction through rules engine
+  if (!matchedItem) {
+    for (const pred of predictions) {
+      const cleanName = pred.className.split(',')[0].trim();
+      const rule = evaluateLegalCategory(cleanName);
+      if (rule.categoryKey !== 'unknown') {
+        matchedItem = {
+          itemLabel: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+          category: rule.categoryKey,
+          confidence: Number(Math.min(0.95, Math.max(0.80, pred.probability + 0.65)).toFixed(2))
+        };
+        break;
+      }
+    }
+  }
+
+  // 3. Fallback to top prediction
   if (!matchedItem) {
     const top = predictions[0];
-    const cleanName = top.className.split(',')[0];
-    const rule = evaluateLegalCategory(cleanName);
-
-    if (rule.categoryKey !== 'unknown' && top.probability > 0.20) {
-      matchedItem = {
-        itemLabel: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
-        category: rule.categoryKey,
-        confidence: Number(Math.min(0.94, Math.max(0.72, top.probability + 0.45)).toFixed(2))
-      };
-    } else {
-      matchedItem = {
-        itemLabel: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
-        category: 'unknown',
-        confidence: Number(top.probability.toFixed(2))
-      };
-    }
+    const cleanName = top.className.split(',')[0].trim();
+    matchedItem = {
+      itemLabel: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+      category: 'unknown',
+      confidence: Number(top.probability.toFixed(2))
+    };
   }
 
   const ruleEval = evaluateLegalCategory(matchedItem.itemLabel || matchedItem.category);
   const finalCategory = matchedItem.category !== 'unknown' ? matchedItem.category : ruleEval.categoryKey;
-  const isConfident = matchedItem.confidence >= 0.75 && finalCategory !== 'unknown';
+  const isConfident = finalCategory !== 'unknown';
 
   return {
     itemLabel: matchedItem.itemLabel,
